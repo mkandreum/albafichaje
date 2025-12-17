@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Gestión de Fichajes - Liquid Glass</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/styles.css">
+</head>
+
+<body>
+    <!-- Login Screen -->
+    <div id="loginScreen" class="screen active">
+        <div class="login-container">
+            <div class="glass-card login-card">
+                <div class="logo-container">
+                    <div class="logo-glass">
+                        <svg width="60" height="60" viewBox="0 0 60 60" fill="none">
+                            <circle cx="30" cy="30" r="28" stroke="url(#logoGradient)" stroke-width="2" />
+                            <path d="M30 15V30L40 35" stroke="url(#logoGradient)" stroke-width="3"
+                                stroke-linecap="round" />
+                            <defs>
+                                <linearGradient id="logoGradient" x1="0" y1="0" x2="60" y2="60">
+                                    <stop offset="0%" stop-color="#00D4FF" />
+                                    <stop offset="100%" stop-color="#7B61FF" />
+                                </linearGradient>
+                            </defs>
+                        </svg>
+                    </div>
+                    <h1 class="app-title">Gestión de Fichajes</h1>
+                    <p class="app-subtitle">Sistema de control horario</p>
+                </div>
+
+                <form id="loginForm" class="auth-form">
+                    <div class="input-group">
+                        <label for="loginEmail">Correo Electrónico</label>
+                        <div class="glass-input">
+                            <input type="email" id="loginEmail" required placeholder="tu@email.com">
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="loginPassword">Contraseña</label>
+                        <div class="glass-input">
+                            <input type="password" id="loginPassword" required placeholder="••••••••">
+                        </div>
+                    </div>
+
+                    <button type="submit" class="glass-button primary">
+                        <span>Iniciar Sesión</span>
+                    </button>
+
+                    <button type="button" class="glass-button secondary" id="showRegisterBtn">
+                        <span>Registrarse</span>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Register Screen -->
+    <div id="registerScreen" class="screen">
+        <div class="login-container">
+            <div class="glass-card login-card">
+                <div class="logo-container">
+                    <h1 class="app-title">Crear Cuenta</h1>
+                    <p class="app-subtitle">Completa tus datos</p>
+                </div>
+
+                <form id="registerForm" class="auth-form">
+                    <div class="input-group">
+                        <label for="regEmail">Correo Electrónico</label>
+                        <div class="glass-input">
+                            <input type="email" id="regEmail" required placeholder="tu@email.com">
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="regPassword">Contraseña</label>
+                        <div class="glass-input">
+                            <input type="password" id="regPassword" required placeholder="••••••••">
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="regPasswordConfirm">Confirmar Contraseña</label>
+                        <div class="glass-input">
+                            <input type="password" id="regPasswordConfirm" required placeholder="••••••••">
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="regNombre">Nombre</label>
+                        <div class="glass-input">
+                            <input type="text" id="regNombre" required placeholder="Tu nombre">
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="regApellidos">Apellidos</label>
+                        <div class="glass-input">
+                            <input type="text" id="regApellidos" required placeholder="Tus apellidos">
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="regAfiliacion">Nº Afiliación</label>
+                        <div class="glass-input">
+                            <input type="text" id="regAfiliacion" required placeholder="123456789012">
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="regDNI">DNI</label>
+                        <div class="glass-input">
+                            <input type="text" id="regDNI" required placeholder="12345678A">
+                        </div>
+                    </div>
+
+                    <button type="submit" class="glass-button primary">
+                        <span>Crear Cuenta</span>
+                    </button>
+
+                    <button type="button" class="glass-button secondary" id="backToLoginBtn">
+                        <span>Volver al Login</span>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main App Screen -->
+    <div id="appScreen" class="screen">
+        <!-- Header -->
+        <header class="app-header glass-card">
+            <div class="user-info">
+                <div class="user-avatar">
+                    <span id="userInitials">U</span>
+                </div>
+                <div class="user-details">
+                    <h3 id="userName">Usuario</h3>
+                    <p id="userRole">Empleado</p>
+                </div>
+            </div>
+            <button class="glass-button icon-btn" id="logoutBtn">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                    <polyline points="16 17 21 12 16 7" />
+                    <line x1="21" y1="12" x2="9" y2="12" />
+                </svg>
+            </button>
+        </header>
+
+        <!-- Content Area -->
+        <main class="app-content">
+            <!-- Fichaje Tab -->
+            <div id="fichajeTab" class="tab-content active">
+                <div class="glass-card content-card">
+                    <h2 class="section-title">Registrar Fichaje</h2>
+                    <div class="date-selector-container">
+                        <label>Fecha del Fichaje</label>
+                        <div class="glass-input date-input-wrapper">
+                            <input type="date" id="fichajeDate" class="date-input">
+                        </div>
+                    </div>
+
+                    <div class="time-input-row">
+                        <div class="time-group-compact">
+                            <label>Hora de Entrada</label>
+                            <div class="glass-time-picker">
+                                <input type="time" id="entryTime" class="time-input">
+                            </div>
+                        </div>
+                        <div class="time-group-compact">
+                            <label>Hora de Salida</label>
+                            <div class="glass-time-picker">
+                                <input type="time" id="exitTime" class="time-input">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="signatures-grid">
+                        <div class="mini-sig-container">
+                            <label class="mini-sig-label">Firma Entrada</label>
+                            <div class="glass-signature-pad mini">
+                                <canvas id="entrySigPad" width="150" height="60"></canvas>
+                            </div>
+                            <button type="button" class="text-btn" id="clearEntrySig">Limpiar</button>
+                        </div>
+                        <div class="mini-sig-container">
+                            <label class="mini-sig-label">Firma Salida</label>
+                            <div class="glass-signature-pad mini">
+                                <canvas id="exitSigPad" width="150" height="60"></canvas>
+                            </div>
+                            <button type="button" class="text-btn" id="clearExitSig">Limpiar</button>
+                        </div>
+                    </div>
+
+                    <button class="glass-button primary large" id="registerFichajeBtn">
+                        <span>Registrar Fichaje</span>
+                    </button>
+
+                    <div class="today-fichajes" id="todayFichajes">
+                        <h3>Fichajes de Hoy</h3>
+                        <div id="todayList" class="fichaje-list"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Historico Tab -->
+            <div id="historicoTab" class="tab-content">
+                <div class="glass-card content-card">
+                    <div class="calendar-header">
+                        <button class="glass-button icon-btn" id="prevMonthBtn">
+                            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <polyline points="12 4 6 10 12 16" />
+                            </svg>
+                        </button>
+                        <h2 id="calendarMonth">Enero 2024</h2>
+                        <button class="glass-button icon-btn" id="nextMonthBtn">
+                            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <polyline points="8 4 14 10 8 16" />
+                            </svg>
+                        </button>
+                    </div>
+
+                    <div class="calendar-grid" id="calendarGrid"></div>
+
+                    <div class="legend">
+                        <div class="legend-item">
+                            <span class="legend-dot complete"></span>
+                            <span>Completo</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-dot missing"></span>
+                            <span>Falta fichaje</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-dot future"></span>
+                            <span>Futuro</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Firma Tab -->
+            <div id="firmaTab" class="tab-content">
+                <div class="glass-card content-card">
+                    <h2 class="section-title">Firma de Fichaje</h2>
+                    <p class="section-subtitle">Genera tu informe mensual</p>
+
+                    <div class="signature-section">
+                        <label>Firma aquí</label>
+                        <div class="glass-signature-pad">
+                            <canvas id="signaturePad" width="600" height="300"></canvas>
+                        </div>
+                        <button class="glass-button secondary small" id="clearSignatureBtn">
+                            <span>Limpiar Firma</span>
+                        </button>
+                    </div>
+
+                    <div class="action-buttons">
+                        <button class="glass-button primary" id="generatePdfBtn">
+                            <span>Generar PDF</span>
+                        </button>
+                        <button class="glass-button secondary" id="sharePdfBtn">
+                            <span>Compartir</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Admin Tab -->
+            <div id="adminTab" class="tab-content">
+                <div class="glass-card content-card">
+                    <h2 class="section-title">Panel de Administración</h2>
+
+                    <div class="admin-stats">
+                        <div class="stat-card glass-card">
+                            <h3 id="totalEmployees">0</h3>
+                            <p>Empleados</p>
+                        </div>
+                        <div class="stat-card glass-card">
+                            <h3 id="todayFichajes">0</h3>
+                            <p>Fichajes Hoy</p>
+                        </div>
+                    </div>
+
+                    <div class="employee-list" id="employeeList"></div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Floating Tab Bar (Pure CSS Liquid Glass) -->
+        <nav class="floating-tab-bar">
+            <div class="active-tab-indicator" id="tabIndicator"></div>
+            <div class="tabs-container">
+                <button class="tab-btn active" data-tab="fichaje">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10" />
+                        <polyline points="12 6 12 12 16 14" />
+                    </svg>
+                    <span>Fichaje</span>
+                </button>
+                <button class="tab-btn" data-tab="historico">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                        <line x1="16" y1="2" x2="16" y2="6" />
+                        <line x1="8" y1="2" x2="8" y2="6" />
+                        <line x1="3" y1="10" x2="21" y2="10" />
+                    </svg>
+                    <span>Histórico</span>
+                </button>
+                <button class="tab-btn" data-tab="firma">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z" />
+                    </svg>
+                    <span>Firma</span>
+                </button>
+                <button class="tab-btn" data-tab="admin" id="adminTabBtn" style="display: none;">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 2L2 7l10 5 10-5-10-5z" />
+                        <path d="M2 17l10 5 10-5" />
+                        <path d="M2 12l10 5 10-5" />
+                    </svg>
+                    <span>Admin</span>
+                </button>
+            </div>
+        </nav>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast glass-card"></div>
+
+    <!-- Confirmation Modal -->
+    <div id="confirmModal" class="modal">
+        <div class="modal-content glass-card">
+            <h3 class="modal-title">Registro Existente</h3>
+            <p class="modal-body">Ya existe un fichaje para hoy. ¿Deseas reemplazarlo con los nuevos datos?</p>
+            <div class="modal-buttons">
+                <button class="modal-btn cancel" id="cancelReplace">Cancelar</button>
+                <button class="modal-btn confirm" id="confirmReplace">Reemplazar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- PDF Libraries (pdfmake) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.9/pdfmake.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.9/vfs_fonts.js"></script>
+
+    <script src="assets/js/app.js"></script>
+</body>
+
+</html>

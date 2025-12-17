@@ -1,0 +1,818 @@
+// API SERVICE
+class ApiService {
+    constructor(baseUrl = 'api') {
+        this.baseUrl = baseUrl;
+    }
+
+    async request(endpoint, method = 'GET', data = null) {
+        const config = {
+            method,
+            headers: { 'Content-Type': 'application/json' }
+        };
+        if (data) config.body = JSON.stringify(data);
+        try {
+            const response = await fetch(`${this.baseUrl}/${endpoint}`, config);
+            return await response.json();
+        } catch (error) {
+            return { success: false, message: 'Connection error' };
+        }
+    }
+
+    async login(email, password) { return this.request('auth.php?action=login', 'POST', { email, password }); }
+    async register(data) { return this.request('auth.php?action=register', 'POST', data); }
+    async logout() { return this.request('auth.php?action=logout', 'POST'); }
+    async checkSession() { return this.request('auth.php?action=check', 'GET'); }
+    async getFichajes(userId = null) {
+        let url = 'fichajes.php';
+        if (userId) url += `?user_id=${userId}`;
+        return this.request(url, 'GET');
+    }
+    async saveFichaje(data) { return this.request('fichajes.php', 'POST', data); }
+    async getAllFichajes() { return this.request('fichajes.php?action=all', 'GET'); }
+    async getAllUsers() { return this.request('auth.php?action=users', 'GET'); }
+    async uploadSignature(base64Image) { return this.request('upload.php', 'POST', { image: base64Image }); }
+}
+
+// MAIN APP
+class FichajeApp {
+    constructor() {
+        this.api = new ApiService();
+        this.currentUser = null;
+        this.fichajes = [];
+        this.users = [];
+        this.currentView = 'login';
+        this.currentMonth = new Date();
+        this.signaturePad = null;
+        this.entrySignaturePad = null;
+        this.exitSignaturePad = null;
+        this.init();
+    }
+
+    async init() {
+        this.setupEventListeners();
+        this.initMainSignaturePad();
+        this.initDailySignaturePads();
+
+        const session = await this.api.checkSession();
+        if (session.success) {
+            this.currentUser = session.user;
+            await this.loadData();
+            this.showApp();
+            this.renderCalendar();
+            this.loadTodayFichajes();
+            this.updateTabIndicator();
+            if (this.currentUser.role === 'admin') {
+                document.getElementById('adminTabBtn').style.display = 'flex';
+            }
+        } else {
+            this.showScreen('login');
+        }
+    }
+
+    async loadData() {
+        const result = await this.api.getFichajes();
+        if (result.success) {
+            this.fichajes = result.fichajes;
+        }
+    }
+
+    setupEventListeners() {
+        document.getElementById('loginForm').addEventListener('submit', (e) => this.handleLogin(e));
+        document.getElementById('registerForm').addEventListener('submit', (e) => this.handleRegister(e));
+        document.getElementById('showRegisterBtn').addEventListener('click', () => this.showScreen('register'));
+        document.getElementById('backToLoginBtn').addEventListener('click', () => this.showScreen('login'));
+        document.getElementById('logoutBtn').addEventListener('click', () => this.handleLogout());
+
+        document.getElementById('registerFichajeBtn').addEventListener('click', () => this.registerFichaje());
+        document.getElementById('clearEntrySig').addEventListener('click', () => this.clearDailyPad('entry'));
+        document.getElementById('clearExitSig').addEventListener('click', () => this.clearDailyPad('exit'));
+
+        document.getElementById('prevMonthBtn').addEventListener('click', () => this.changeMonth(-1));
+        document.getElementById('nextMonthBtn').addEventListener('click', () => this.changeMonth(1));
+
+        document.getElementById('clearSignatureBtn').addEventListener('click', () => this.clearMainSignature());
+        document.getElementById('generatePdfBtn').addEventListener('click', () => this.generatePDF());
+        document.getElementById('sharePdfBtn').addEventListener('click', () => this.sharePDF());
+
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                this.switchTab(e.currentTarget.getAttribute('data-tab'));
+            });
+        });
+
+        window.addEventListener('resize', () => this.updateTabIndicator());
+    }
+
+    updateTabIndicator() {
+        const activeBtn = document.querySelector('.tab-btn.active');
+        const indicator = document.getElementById('tabIndicator');
+        const container = document.querySelector('.tabs-container');
+        if (!activeBtn || !indicator || !container) return;
+        const btnRect = activeBtn.getBoundingClientRect();
+        const containerRect = container.getBoundingClientRect();
+        indicator.style.left = `${btnRect.left - containerRect.left}px`;
+        indicator.style.width = `${btnRect.width}px`;
+    }
+
+    async handleLogin(e) {
+        e.preventDefault();
+        const email = document.getElementById('loginEmail').value;
+        const password = document.getElementById('loginPassword').value;
+        const result = await this.api.login(email, password);
+
+        if (result.success) {
+            this.currentUser = result.user;
+            await this.loadData();
+            this.showApp();
+            this.showToast('Bienvenido, ' + this.currentUser.nombre);
+            this.loadTodayFichajes();
+            this.renderCalendar();
+            if (this.currentUser.role === 'admin') {
+                document.getElementById('adminTabBtn').style.display = 'flex';
+                const allFichajes = await this.api.getAllFichajes();
+                if (allFichajes.success) {
+                    this.fichajes = allFichajes.fichajes;
+                    this.loadAdminData();
+                }
+            }
+        } else {
+            this.showToast(result.message || 'Error de login', 'error');
+        }
+    }
+
+    async handleRegister(e) {
+        e.preventDefault();
+        const data = {
+            nombre: this.sanitizeInput(document.getElementById('regNombre').value),
+            apellidos: this.sanitizeInput(document.getElementById('regApellidos').value),
+            dni: this.sanitizeInput(document.getElementById('regDNI').value),
+            email: this.sanitizeInput(document.getElementById('regEmail').value),
+            password: document.getElementById('regPassword').value,
+            afiliacion: this.sanitizeInput(document.getElementById('regAfiliacion').value)
+        };
+
+        if (document.getElementById('regPassword').value !== document.getElementById('regPasswordConfirm').value) {
+            this.showToast('Las contraseñas no coinciden', 'error');
+            return;
+        }
+
+        const result = await this.api.register(data);
+        if (result.success) {
+            this.currentUser = result.user;
+            this.showToast('Registro exitoso', 'success');
+            this.showScreen('app');
+        } else {
+            this.showToast(result.message || 'Error en registro', 'error');
+        }
+    }
+
+    async handleLogout() {
+        await this.api.logout();
+        this.currentUser = null;
+        this.fichajes = [];
+        clearTimeout(this.inactivityTimer);
+        this.showScreen('login');
+        this.showToast('Sesión cerrada correctamente', 'success');
+        document.getElementById('loginEmail').value = '';
+        document.getElementById('loginPassword').value = '';
+    }
+
+    showScreen(screenName) {
+        document.querySelectorAll('.screen').forEach(screen => screen.classList.remove('active'));
+        document.getElementById(`${screenName}Screen`).classList.add('active');
+        this.currentView = screenName;
+    }
+
+    showApp() {
+        this.showScreen('app');
+        this.updateUserInfo();
+        this.switchTab('fichaje');
+        this.setupInactivityMonitor();
+        setTimeout(() => this.updateTabIndicator(), 50);
+        if (this.currentUser.role === 'admin') {
+            document.getElementById('adminTabBtn').style.display = 'flex';
+            this.loadAdminData();
+            setTimeout(() => this.updateTabIndicator(), 100);
+        } else {
+            document.getElementById('adminTabBtn').style.display = 'none';
+        }
+    }
+
+    updateUserInfo() {
+        const initials = (this.currentUser.nombre[0] + this.currentUser.apellidos[0]).toUpperCase();
+        document.getElementById('userInitials').textContent = initials;
+        document.getElementById('userName').textContent = `${this.currentUser.nombre} ${this.currentUser.apellidos}`;
+        document.getElementById('userRole').textContent = this.currentUser.role === 'admin' ? 'Administrador' : 'Empleado';
+    }
+
+    switchTab(tabName) {
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+        document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+        document.getElementById(`${tabName}Tab`).classList.add('active');
+        this.updateTabIndicator();
+        if (tabName === 'fichaje') this.loadTodayFichajes();
+        else if (tabName === 'historico') this.renderCalendar();
+        else if (tabName === 'admin') this.loadAdminData();
+    }
+
+    registerFichaje() {
+        if (!this.currentUser) return;
+        const dateInput = document.getElementById('fichajeDate');
+        const date = dateInput ? dateInput.value : new Date().toISOString().split('T')[0];
+        const entryTime = document.getElementById('entryTime').value;
+        const exitTime = document.getElementById('exitTime').value;
+
+        if (!entryTime) {
+            this.showToast('Debes indicar al menos la hora de entrada', 'error');
+            return;
+        }
+
+        const existingIndex = this.fichajes.findIndex(f => f.userId === this.currentUser.id && f.date === date);
+        if (existingIndex !== -1) {
+            this.showConfirmModal(() => {
+                this.processFichaje(date, entryTime, exitTime, existingIndex);
+            });
+            return;
+        }
+        this.processFichaje(date, entryTime, exitTime);
+    }
+
+    async processFichaje(date, entryTime, exitTime, existingIndex = -1) {
+        let entrySigData = null;
+        let exitSigData = null;
+
+        if (!this.entrySignaturePad.isEmpty()) {
+            const uploadRes = await this.api.uploadSignature(this.entrySignaturePad.toDataURL());
+            if (uploadRes.success) entrySigData = uploadRes.view_url;
+        } else if (existingIndex !== -1) {
+            entrySigData = this.fichajes[existingIndex].entrySignature;
+        }
+
+        if (!this.exitSignaturePad.isEmpty()) {
+            const uploadRes = await this.api.uploadSignature(this.exitSignaturePad.toDataURL());
+            if (uploadRes.success) exitSigData = uploadRes.view_url;
+        } else if (existingIndex !== -1) {
+            exitSigData = this.fichajes[existingIndex].exitSignature;
+        }
+
+        const fichaje = {
+            userId: this.currentUser.id,
+            userName: `${this.currentUser.nombre} ${this.currentUser.apellidos}`,
+            date, entryTime, exitTime, entrySignature: entrySigData, exitSignature: exitSigData
+        };
+
+        const result = await this.api.saveFichaje(fichaje);
+        if (result.success) {
+            this.showToast(existingIndex !== -1 ? 'Fichaje actualizado' : 'Fichaje registrado');
+            await this.loadData();
+            this.loadTodayFichajes();
+            this.clearForm();
+        } else {
+            this.showToast('Error guardando fichaje', 'error');
+        }
+    }
+
+    showConfirmModal(onConfirm) {
+        const modal = document.getElementById('confirmModal');
+        const confirmBtn = document.getElementById('confirmReplace');
+        const cancelBtn = document.getElementById('cancelReplace');
+        modal.classList.add('show');
+        const cleanup = () => {
+            modal.classList.remove('show');
+            confirmBtn.onclick = null;
+            cancelBtn.onclick = null;
+        };
+        confirmBtn.onclick = () => { onConfirm(); cleanup(); };
+        cancelBtn.onclick = () => { cleanup(); };
+    }
+
+    clearForm() {
+        document.getElementById('entryTime').value = '';
+        document.getElementById('exitTime').value = '';
+        this.clearDailyPad('entry');
+        this.clearDailyPad('exit');
+        this.loadTodayFichajes();
+    }
+
+    loadTodayFichajes() {
+        const today = new Date().toISOString().split('T')[0];
+        const userId = this.currentUser.id || this.currentUser.email;
+        const todayFichajes = this.fichajes.filter(f => f.date === today && f.userId === userId);
+        const listContainer = document.getElementById('todayList');
+        if (!listContainer) return;
+
+        if (todayFichajes.length === 0) {
+            listContainer.innerHTML = '<p style="color: rgba(255,255,255,0.5); text-align: center;">No hay fichajes registrados hoy</p>';
+            return;
+        }
+
+        listContainer.innerHTML = todayFichajes.map(f => `
+            <div class="fichaje-item">
+                <div>
+                    <div class="fichaje-time">Entrada: ${f.entryTime}</div>
+                    <div class="fichaje-time">Salida: ${f.exitTime}</div>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    updateCurrentDate() {
+        const today = new Date().toISOString().split('T')[0];
+        const dateInput = document.getElementById('fichajeDate');
+        if (dateInput) {
+            dateInput.value = today;
+            dateInput.max = today; // Prevent future dates
+        }
+    }
+
+    changeMonth(direction) {
+        this.currentMonth = new Date(this.currentMonth.getFullYear(), this.currentMonth.getMonth() + direction, 1);
+        this.renderCalendar();
+    }
+
+    renderCalendar() {
+        const year = this.currentMonth.getFullYear();
+        const month = this.currentMonth.getMonth();
+        const monthNames = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+        document.getElementById('calendarMonth').textContent = `${monthNames[month]} ${year}`;
+
+        const firstDay = new Date(year, month, 1);
+        const lastDay = new Date(year, month + 1, 0);
+        const startingDayOfWeek = firstDay.getDay() === 0 ? 6 : firstDay.getDay() - 1;
+        const daysInMonth = lastDay.getDate();
+        const grid = document.getElementById('calendarGrid');
+        grid.innerHTML = '';
+
+        const dayHeaders = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
+        dayHeaders.forEach(day => {
+            const header = document.createElement('div');
+            header.className = 'calendar-day header';
+            header.textContent = day;
+            grid.appendChild(header);
+        });
+
+        for (let i = 0; i < startingDayOfWeek; i++) {
+            const emptyDay = document.createElement('div');
+            emptyDay.className = 'calendar-day other-month';
+            grid.appendChild(emptyDay);
+        }
+
+        const today = new Date();
+        const userId = this.currentUser.id || this.currentUser.email;
+
+        for (let day = 1; day <= daysInMonth; day++) {
+            const dayElement = document.createElement('div');
+            dayElement.className = 'calendar-day';
+            const currentDate = new Date(year, month, day);
+            const dateString = currentDate.toISOString().split('T')[0];
+            const dayOfWeek = currentDate.getDay();
+
+            if (dateString === today.toISOString().split('T')[0]) dayElement.classList.add('today');
+            if (currentDate > today) dayElement.classList.add('future');
+
+            const hasFichaje = this.fichajes.some(f => f.date === dateString && f.userId === userId);
+            const isWeekday = dayOfWeek >= 1 && dayOfWeek <= 5;
+            const isPast = currentDate < today && dateString !== today.toISOString().split('T')[0];
+
+            if (isPast && isWeekday && !hasFichaje) dayElement.classList.add('missing');
+            else if (hasFichaje) dayElement.classList.add('complete');
+
+            dayElement.innerHTML = `<span class="day-number">${day}</span>${(hasFichaje || (isPast && isWeekday && !hasFichaje)) ? '<span class="day-indicator"></span>' : ''}`;
+            grid.appendChild(dayElement);
+        }
+    }
+
+    initMainSignaturePad() { this.signaturePad = this.setupCanvas('signaturePad'); }
+    initDailySignaturePads() {
+        this.entrySignaturePad = this.setupCanvas('entrySigPad');
+        this.exitSignaturePad = this.setupCanvas('exitSigPad');
+    }
+
+    setupCanvas(elementId) {
+        const canvas = document.getElementById(elementId);
+        const ctx = canvas.getContext('2d');
+        let isDrawing = false;
+        let lastX = 0, lastY = 0;
+
+        const getCoords = (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            const clientX = e.clientX || e.touches[0].clientX;
+            const clientY = e.clientY || e.touches[0].clientY;
+            return { x: (clientX - rect.left) * scaleX, y: (clientY - rect.top) * scaleY };
+        };
+
+        const startDrawing = (e) => { isDrawing = true; const coords = getCoords(e); lastX = coords.x; lastY = coords.y; };
+        const draw = (e) => {
+            if (!isDrawing) return;
+            e.preventDefault();
+            const coords = getCoords(e);
+            ctx.strokeStyle = '#000000';
+            ctx.lineWidth = 2;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            ctx.beginPath();
+            ctx.moveTo(lastX, lastY);
+            ctx.lineTo(coords.x, coords.y);
+            ctx.stroke();
+            lastX = coords.x; lastY = coords.y;
+        };
+        const stopDrawing = () => { isDrawing = false; };
+
+        canvas.addEventListener('mousedown', startDrawing);
+        canvas.addEventListener('mousemove', draw);
+        canvas.addEventListener('mouseup', stopDrawing);
+        canvas.addEventListener('mouseout', stopDrawing);
+        canvas.addEventListener('touchstart', startDrawing, { passive: false });
+        canvas.addEventListener('touchmove', draw, { passive: false });
+        canvas.addEventListener('touchend', stopDrawing);
+
+        return { canvas, ctx, isEmpty: () => this.isCanvasEmpty(canvas), toDataURL: (type) => canvas.toDataURL(type) };
+    }
+
+    clearMainSignature() { this.clearCanvas(this.signaturePad); }
+    clearDailyPad(type) {
+        if (type === 'entry') this.clearCanvas(this.entrySignaturePad);
+        if (type === 'exit') this.clearCanvas(this.exitSignaturePad);
+    }
+    clearCanvas(pad) { if (pad && pad.ctx) pad.ctx.clearRect(0, 0, pad.canvas.width, pad.canvas.height); }
+    isCanvasEmpty(canvas) {
+        const blank = document.createElement('canvas');
+        blank.width = canvas.width; blank.height = canvas.height;
+        return canvas.toDataURL() === blank.toDataURL();
+    }
+    sanitizeInput(input) {
+        if (typeof input !== 'string') return input;
+        return input.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+    }
+    setupInactivityMonitor() {
+        const resetTimer = () => {
+            if (this.currentUser) {
+                clearTimeout(this.inactivityTimer);
+                this.inactivityTimer = setTimeout(() => {
+                    this.showToast('Sesión cerrada por inactividad', 'error');
+                    this.handleLogout();
+                }, 10 * 60 * 1000);
+            }
+        };
+        window.addEventListener('mousemove', resetTimer);
+        window.addEventListener('keydown', resetTimer);
+        window.addEventListener('touchstart', resetTimer);
+        window.addEventListener('click', resetTimer);
+    }
+    showToast(message, type = 'success') {
+        const toast = document.getElementById('toast');
+        toast.textContent = message;
+        toast.className = `toast show ${type}`;
+        setTimeout(() => toast.className = 'toast', 3000);
+    }
+
+    async generatePDF() {
+        const userId = this.currentUser.id || this.currentUser.email;
+        // Capture current signature pad state if valid
+        if (this.signaturePad && !this.isCanvasEmpty(this.signaturePad.canvas)) {
+            const upload = await this.api.uploadSignature(this.signaturePad.canvas.toDataURL('image/png'));
+            if (upload.success) this.currentUser.mainSignature = upload.view_url;
+        }
+
+        const userFichajes = this.fichajes.filter(f => f.userId === userId);
+
+        // Use the shared preloader, but we need to handle mainSignature locally first
+        // actually _prepareAndDownloadPdf handles the heavy lifting of images.
+        // We just need to pass the user with the mainSignature attached.
+
+        this._prepareAndDownloadPdf(this.currentUser, userFichajes);
+    }
+
+    // ==========================================
+    // PDF GENERATION (pdfmake) - Custom Template
+    // ==========================================
+
+    _createAndDownloadPdf(user, fichajes) {
+        if (!window.pdfMake) {
+            this.showToast('Error: pdfmake no está cargado', 'error');
+            return;
+        }
+
+        // IMPORTANT: Bind VFS fonts
+        if (window.pdfMake.vfs) {
+            window.pdfMake.vfs = window.pdfMake.vfs;
+        }
+
+        const currentDate = new Date();
+        const currentMonth = currentDate.getMonth();
+        const currentYear = currentDate.getFullYear();
+
+        // Month names in Spanish
+        const monthNames = ["ENERO", "FEBRERO", "MARZO", "ABRIL", "MAYO", "JUNIO", "JULIO", "AGOSTO", "SEPTIEMBRE", "OCTUBRE", "NOVIEMBRE", "DICIEMBRE"];
+        const monthName = monthNames[currentMonth];
+
+        // Last day of current month
+        const lastDayOfMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+
+        // 1. Header Table Data
+        const headerTableBody = [
+            [
+                { text: 'Empresa:', bold: true, style: 'headerLabel' },
+                { text: 'ALBALUZ DESARROLLOS URBANOS, S.A.', style: 'headerValue' },
+                { text: 'Trabajador:', bold: true, style: 'headerLabel' },
+                { text: `${user.nombre} ${user.apellidos}`.toUpperCase(), style: 'headerValue' }
+            ],
+            [
+                { text: 'C.I.F./N.I.F.:', bold: true, style: 'headerLabel' },
+                { text: 'A98543432', style: 'headerValue' },
+                { text: 'N.I.F.:', bold: true, style: 'headerLabel' },
+                { text: (user.dni || '').toUpperCase(), style: 'headerValue' }
+            ],
+            [
+                { text: 'Centro de Trabajo:', bold: true, style: 'headerLabel' },
+                { text: 'ALBALUZ DESARROLLOS URBANOS S.A', style: 'headerValue' },
+                { text: 'Nº Afiliación:', bold: true, style: 'headerLabel' },
+                { text: user.afiliacion || '', style: 'headerValue' }
+            ],
+            [
+                { text: 'C.C.C.:', bold: true, style: 'headerLabel' },
+                { text: '02/1089856/19', style: 'headerValue' },
+                { text: 'Mes y Año:', bold: true, style: 'headerLabel' },
+                { text: `${(currentMonth + 1).toString().padStart(2, '0')}/${currentYear}`, style: 'headerValue' }
+            ]
+        ];
+
+        // 2. Main Grid Data
+        const gridHeaderRows = [
+            [
+                { text: 'DIA', style: 'tableHeader', rowSpan: 2, alignment: 'center', margin: [0, 8, 0, 0] },
+                { text: 'HORA ENTRADA', style: 'tableHeader', rowSpan: 2, alignment: 'center', margin: [0, 8, 0, 0] },
+                { text: 'HORA SALIDA', style: 'tableHeader', rowSpan: 2, alignment: 'center', margin: [0, 8, 0, 0] },
+                { text: 'HORAS\nORDINARIAS', style: 'tableHeader', rowSpan: 2, alignment: 'center', margin: [0, 2, 0, 0] },
+                { text: 'REGISTRO DE FIRMAS', style: 'tableHeader', colSpan: 2, alignment: 'center' },
+                {} // Placeholder for colspan
+            ],
+            [
+                {}, {}, {}, {}, // Placeholders for rowspan
+                { text: 'ENTRADA', style: 'tableSubHeader', alignment: 'center' },
+                { text: 'SALIDA', style: 'tableSubHeader', alignment: 'center' }
+            ]
+        ];
+
+        const gridBody = [...gridHeaderRows];
+        let totalHorasMensuales = 0;
+
+        // Generate rows 1 to 31
+        for (let day = 1; day <= 31; day++) {
+            const checkDate = `${currentYear}-${(currentMonth + 1).toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
+            const fichaje = fichajes.find(f => f.date === checkDate);
+
+            let entry = '';
+            let exit = '';
+            let hours = '';
+            let entrySigCell = '';
+            let exitSigCell = '';
+
+            if (fichaje) {
+                entry = fichaje.entryTime;
+                exit = fichaje.exitTime;
+
+                // Calculate hours difference
+                const start = new Date(`2000-01-01T${entry}`);
+                const end = new Date(`2000-01-01T${exit}`);
+                if (end > start) {
+                    const diffMs = end - start;
+                    const diffHrs = diffMs / 3600000;
+                    totalHorasMensuales += diffHrs;
+                    hours = diffHrs.toFixed(2);
+                }
+
+                if (fichaje.entrySignature) {
+                    entrySigCell = { image: fichaje.entrySignature, width: 25, alignment: 'center', margin: [0, 2, 0, 0] };
+                }
+                if (fichaje.exitSignature) {
+                    exitSigCell = { image: fichaje.exitSignature, width: 25, alignment: 'center', margin: [0, 2, 0, 0] };
+                }
+            }
+
+            gridBody.push([
+                { text: day.toString(), alignment: 'center', style: 'tableCell' },
+                { text: entry, alignment: 'center', style: 'tableCell' },
+                { text: exit, alignment: 'center', style: 'tableCell' },
+                { text: hours, alignment: 'center', style: 'tableCell' },
+                entrySigCell,
+                exitSigCell
+            ]);
+        }
+
+        // Total Row
+        gridBody.push([
+            { text: 'TOTAL\nHORAS', colSpan: 1, style: 'tableTotal', alignment: 'center' },
+            { text: '', colSpan: 1, style: 'tableTotal' },
+            { text: '', colSpan: 1, style: 'tableTotal' },
+            { text: totalHorasMensuales > 0 ? totalHorasMensuales.toFixed(2) : '', alignment: 'center', style: 'tableTotal' },
+            { text: '', colSpan: 2, style: 'tableTotal' },
+            {}
+        ]);
+
+        // Signature Check
+        let employeeSignature = { text: '' };
+
+        if (user.mainSignature) {
+            // If mainSignature is a URL/Path, we rely on generatePDF pre-processing it to base64 before calling this.
+            // OR if it's already base64 (from auth/template logic)
+            // In existing app structure, generatePDF does the pre-processing.
+            employeeSignature = { image: user.mainSignature, width: 100, alignment: 'center' };
+        }
+        else if (this.signaturePad && !this.isCanvasEmpty(this.signaturePad.canvas) && user.id === (this.currentUser.id || this.currentUser.email)) {
+            // Fallback to active pad for self-download
+            employeeSignature = { image: this.signaturePad.canvas.toDataURL('image/png'), width: 100, alignment: 'center' };
+        }
+
+        // Document Definition
+        const docDefinition = {
+            pageSize: 'A4',
+            pageMargins: [20, 10, 20, 10],
+            content: [
+                { text: 'Listado Resumen mensual del registro de jornada (completo)', style: 'mainHeader' },
+                {
+                    style: 'headerTable',
+                    table: {
+                        widths: ['15%', '35%', '15%', '35%'],
+                        body: headerTableBody
+                    },
+                    layout: {
+                        hLineWidth: function (i, node) { return 0.5; },
+                        vLineWidth: function (i, node) { return 0.5; },
+                    }
+                },
+                { text: '', margin: [0, 5] },
+                {
+                    style: 'mainGrid',
+                    table: {
+                        headerRows: 2,
+                        widths: ['10%', '20%', '20%', '20%', '15%', '15%'],
+                        body: gridBody
+                    },
+                    layout: {
+                        hLineWidth: function (i, node) { return 0.5; },
+                        vLineWidth: function (i, node) { return 0.5; },
+                        fillColor: function (rowIndex, node, columnIndex) {
+                            return (rowIndex < 2) ? '#eeeeee' : null;
+                        }
+                    }
+                },
+                { text: '', margin: [0, 5] },
+                {
+                    columns: [
+                        { text: 'Firma de la empresa:', width: '50%', style: 'signatureLabel' },
+                        { text: 'Firma del trabajador:', width: '50%', style: 'signatureLabel' }
+                    ]
+                },
+                {
+                    columns: [
+                        { text: '', width: '50%', height: 40 },
+                        employeeSignature
+                    ]
+                },
+                { text: '', margin: [0, 5] },
+                {
+                    text: [
+                        { text: 'En ' },
+                        { text: 'ALBACETE', decoration: 'underline' },
+                        { text: ', a ' },
+                        { text: lastDayOfMonth.toString(), decoration: 'underline' },
+                        { text: ' de ' },
+                        { text: monthName, decoration: 'underline' },
+                        { text: ' de ' },
+                        { text: currentYear.toString(), decoration: 'underline' }
+                    ],
+                    alignment: 'right',
+                    margin: [0, 0, 40, 5]
+                },
+                {
+                    text: 'Registro realizado en cumplimiento de la letra h) del artículo 1 del R.D.-Ley 16/2013, de 20 de diciembre por el que se modifica el artículo 12.5 del E.T., por el que se establece que "La jornada de los trabajadores a tiempo parcial se registrará día a día y se totalizará mensualmente, entregando copia al trabajador, junto con el recibo de salarios, del resumen de todas las horas realizadas en cada mes, tanto de las ordinarias como de las complementarias en sus distintas modalidades.\n\nEl empresario deberá conservar los resúmenes mensuales de los registros de jornada durante un periodo mínimo de cuatro años. El incumplimiento empresarial de estas obligaciones de registro tendrá por consecuencia jurídica la de que el contrato se presuma celebrado a jornada completa, salvo prueba en contrario que acredite el carácter parcial de los servicios.',
+                    style: 'legalText'
+                }
+            ],
+            styles: {
+                mainHeader: { fontSize: 14, bold: true, alignment: 'center', margin: [0, 0, 0, 10] },
+                headerTable: { margin: [0, 0, 0, 0] },
+                headerLabel: { fontSize: 8, bold: false, color: '#000000', fillColor: '#eeeeee' },
+                headerValue: { fontSize: 9, bold: true },
+                tableHeader: { fontSize: 8, bold: true, color: 'black', fillColor: '#eeeeee' },
+                tableSubHeader: { fontSize: 8, bold: true, color: 'black', fillColor: '#eeeeee' },
+                tableCell: { fontSize: 8, margin: [0, 1, 0, 1] },
+                tableTotal: { fontSize: 10, bold: true, fillColor: '#eeeeee' },
+                signatureLabel: { fontSize: 10, bold: true },
+                legalText: { fontSize: 5, alignment: 'justify', color: '#444444' }
+            }
+        };
+
+        try {
+            pdfMake.createPdf(docDefinition).download(`Resumen_Mensual_${monthNames[currentMonth]}_${currentYear}.pdf`);
+            this.showToast('PDF Generado y Descargado', 'success');
+        } catch (e) {
+            console.error(e);
+            this.showToast('Error generando PDF: ' + e.message, 'error');
+        }
+    }
+
+    // Admin Implementation
+    async loadAdminData() {
+        if (!this.currentUser || this.currentUser.role !== 'admin') return;
+
+        // Fetch fresh data
+        const [usersRes, fichajesRes] = await Promise.all([
+            this.api.getAllUsers(),
+            this.api.getAllFichajes()
+        ]);
+
+        if (usersRes.success) this.users = usersRes.users;
+        if (fichajesRes.success) this.fichajes = fichajesRes.fichajes;
+
+        // Calc stats
+        const totalEmployees = this.users.length;
+        const today = new Date().toISOString().split('T')[0];
+        const todayFichajesCount = this.fichajes.filter(f => f.date === today).length;
+
+        document.getElementById('totalEmployees').textContent = totalEmployees;
+        document.getElementById('todayFichajes').textContent = todayFichajesCount;
+
+        // Render List
+        const list = document.getElementById('employeeList');
+        list.innerHTML = this.users.map(user => {
+            const lastFichaje = this.fichajes
+                .filter(f => f.userId === user.id)
+                .sort((a, b) => new Date(b.date) - new Date(a.date))[0];
+
+            return `
+                <div class="employee-card">
+                    <div class="user-info">
+                        <div class="user-avatar" style="width: 40px; height: 40px; font-size: 16px;">
+                            ${(user.nombre[0] + user.apellidos[0]).toUpperCase()}
+                        </div>
+                        <div>
+                            <h4 style="margin: 0;">${user.nombre} ${user.apellidos}</h4>
+                            <p style="margin: 0; font-size: 12px; color: var(--text-secondary);">
+                                ${user.email} | DNI: ${user.dni || '-'}
+                            </p>
+                        </div>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 5px;">
+                        <span style="font-size: 13px; color: var(--text-secondary);">
+                            Último fichaje: ${lastFichaje ? lastFichaje.date : 'Nunca'}
+                        </span>
+                        <button class="download-btn" onclick="window.app.generatePDFForUser('${user.id}')">
+                            Descargar PDF
+                        </button>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    generatePDFForUser(userId) {
+        const user = this.users.find(u => u.id === userId);
+        if (!user) return;
+
+        // Filter fichajes for this user specifically
+        const userFichajes = this.fichajes.filter(f => f.userId === userId);
+
+        // We modify the user object to include mainSignature if available in their profile or use a placeholder
+        // Since we don't have their live signature pad, we rely on stored signature or their profile 'mainSignature' if kept there.
+        // For now, we will just pass the user object.
+        this._prepareAndDownloadPdf(user, userFichajes);
+    }
+
+    async _prepareAndDownloadPdf(user, userFichajes) {
+        this.showToast(`Generando PDF para ${user.nombre}...`);
+
+        const toDataURL = url => fetch(url)
+            .then(response => response.blob())
+            .then(blob => new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onloadend = () => resolve(reader.result);
+                reader.onerror = reject;
+                reader.readAsDataURL(blob);
+            }))
+            .catch(() => null);
+
+        const processedFichajes = await Promise.all(userFichajes.map(async f => {
+            let entrySig = null; let exitSig = null;
+            if (f.entrySignature) entrySig = await toDataURL(f.entrySignature);
+            if (f.exitSignature) exitSig = await toDataURL(f.exitSignature);
+            return { ...f, entrySignature: entrySig, exitSignature: exitSig };
+        }));
+
+        // Handle User Main Signature (e.g. from profile if saved, or empty)
+        // Currently we don't save main signature in profile, only valid for current session in signature tab.
+        // We can check if any fichaje has a signature and reuse it? No, that's forgery.
+        // We will leave it blank if they haven't signed a "main" signature in this session, 
+        // OR we could check if we saved it in user profile in DB (we don't currently).
+        // Let's just pass the user as is.
+
+        this._createAndDownloadPdf(user, processedFichajes);
+    }
+
+    async sharePDF() { this.generatePDF(); }
+}
+document.addEventListener('DOMContentLoaded', () => { window.app = new FichajeApp(); });
