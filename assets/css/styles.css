@@ -66,14 +66,16 @@ body {
     line-height: 1.5;
     -webkit-font-smoothing: antialiased;
     /* Enable smooth scrolling explicitly on body */
-    overflow-y: auto;
-    overflow-x: hidden;
+    overflow: hidden;
+    /* Prevent body scroll, handle in containers */
     height: 100%;
     /* Subtle background gradient mesh */
     background: radial-gradient(circle at 100% 0%, rgba(10, 132, 255, 0.15) 0%, transparent 40%),
         radial-gradient(circle at 0% 100%, rgba(94, 92, 230, 0.15) 0%, transparent 40%),
         var(--bg-dark);
     background-attachment: fixed;
+    overscroll-behavior: none;
+    /* Prevent pull-to-refresh effects */
 }
 
 /* Noise Texture Overlay for that 'Physical' Feel */
@@ -95,7 +97,6 @@ body::before {
    ========================================== */
 
 /* Base screen logic - Hidden by default */
-/* Base screen logic - Hidden by default */
 .screen {
     display: none !important;
     width: 100%;
@@ -106,10 +107,8 @@ body::before {
     /* Changed from absolute to fixed */
     top: 0;
     left: 0;
-    overflow-y: auto;
-    overflow-x: hidden;
-    -webkit-overflow-scrolling: touch;
-    /* Enable smooth scroll on iOS */
+    overflow: hidden;
+    /* Main screen shouldn't scroll, inner containers should */
     opacity: 0;
     transition: opacity 0.3s ease;
 }
@@ -122,7 +121,6 @@ body::before {
     animation: fadeIn 0.4s ease-out forwards;
 }
 
-/* Main app specific styling */
 /* Main app specific styling */
 #appScreen {
     width: 100%;
@@ -155,14 +153,12 @@ body::before {
 .tab-content {
     display: none !important;
     flex: 1;
+    /* Ensure flex Item */
     width: 100%;
-    overflow-y: auto;
-    overflow-x: hidden;
-    -webkit-overflow-scrolling: touch;
     padding: 0 0 calc(100px + var(--safe-area-bottom)) 0;
-    /* Big bottom padding to clear floating bar */
     box-sizing: border-box;
 }
+
 
 /* Calendar should scroll smoothly but look clean */
 #historicoTab.tab-content {
@@ -223,7 +219,10 @@ body::before {
     /* Inner rim light */
     position: relative;
     overflow: hidden;
+    touch-action: none;
+    /* Prevent scroll while interacting */
 }
+
 
 /* Specular Highlight (The "Glossy" top edge) */
 .glass-card::before,
@@ -256,7 +255,13 @@ body::before {
     padding: var(--padding-screen);
     padding-top: 50px;
     padding-bottom: 50px;
-    min-height: 100%;
+    padding-top: 50px;
+    padding-bottom: 50px;
+    height: 100%;
+    /* Fill the screen */
+    overflow-y: auto;
+    /* Allow independent scrolling */
+    -webkit-overflow-scrolling: touch;
 }
 
 .login-card {
@@ -444,6 +449,16 @@ body::before {
     flex-direction: column;
 }
 
+/* Ensure tab content takes remaining space and scrolls internally */
+.tab-content {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 100px;
+    /* Space for nav */
+}
+
 /* Redundant tab-content rules removed to fix scroll and overlap */
 
 .content-card {
@@ -498,8 +513,18 @@ body::before {
 }
 
 /* ==========================================
-   FICHAJE LIST
+   FICHAJE LIST (Scrollable Area)
    ========================================== */
+.today-fichajes {
+    margin-top: 20px;
+    max-height: 200px;
+    /* Fixed height for scroll */
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    padding-top: 15px;
+}
+
 
 .fichaje-item {
     background: rgba(255, 255, 255, 0.05);

@@ -45,6 +45,7 @@ class FichajeApp {
         this.signaturePad = null;
         this.entrySignaturePad = null;
         this.exitSignaturePad = null;
+        window.app = this; // Expose for admin onclick handlers
         this.init();
     }
 
@@ -399,8 +400,8 @@ class FichajeApp {
             const rect = canvas.getBoundingClientRect();
             const scaleX = canvas.width / rect.width;
             const scaleY = canvas.height / rect.height;
-            const clientX = e.clientX || e.touches[0].clientX;
-            const clientY = e.clientY || e.touches[0].clientY;
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
             return { x: (clientX - rect.left) * scaleX, y: (clientY - rect.top) * scaleY };
         };
 
