@@ -857,6 +857,7 @@ class FichajeApp {
             const monthNumber = (currentMonth + 1).toString().padStart(2, '0');
             const dni = user.dni || 'SIN_DNI';
             const filename = `${dni}_${monthNumber}_${currentYear}.pdf`;
+            console.log('Generating PDF with filename:', filename);
 
             // Mobile browsers often block async downloads. Use open() or standard download based on device.
             const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
