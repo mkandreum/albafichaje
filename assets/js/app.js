@@ -778,14 +778,32 @@ class FichajeApp {
     async loadAdminData() {
         if (!this.currentUser || this.currentUser.role !== 'admin') return;
 
+        this.showToast('Cargando datos de administración...', 'info');
+
         // Fetch fresh data
         const [usersRes, fichajesRes] = await Promise.all([
             this.api.getAllUsers(),
             this.api.getAllFichajes()
         ]);
 
-        if (usersRes.success) this.users = usersRes.users;
-        if (fichajesRes.success) this.fichajes = fichajesRes.fichajes;
+        if (usersRes.success) {
+            this.users = usersRes.users;
+            // this.showToast(`Debug: ${this.users.length} usuarios cargados`);
+        } else {
+            this.showToast('Error cargando usuarios: ' + usersRes.message, 'error');
+        }
+
+        if (fichajesRes.success) {
+            this.fichajes = fichajesRes.fichajes;
+            // this.showToast(`Debug: ${this.fichajes.length} fichajes cargados`);
+        } else {
+            this.showToast('Error cargando fichajes: ' + fichajesRes.message, 'error');
+        }
+
+        // If 0 users, something is wrong with API or Parsing?
+        if (this.users.length === 0) {
+            this.showToast('Advertencia: 0 usuarios encontrados en la base de datos.', 'warning');
+        }
 
         // Calc stats
         const totalEmployees = this.users.length;
