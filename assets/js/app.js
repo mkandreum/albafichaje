@@ -911,7 +911,6 @@ class FichajeApp {
 
             if (fichajesWithExitSig.length > 0) {
                 mainSignatureData = fichajesWithExitSig[0].exitSignature;
-                this.showToast('ℹ️ Usando última firma de salida como firma principal', 'info');
             }
         }
 
