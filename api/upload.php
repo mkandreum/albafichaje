@@ -2,7 +2,7 @@
 // api/upload.php
 require_once 'config.php';
 
-if (!isset($_SESSION['user_id'])) {
+if (!isset($_SESSION['user']['id'])) {
     response(['success' => false, 'message' => 'Unauthorized'], 401);
 }
 
@@ -21,16 +21,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $type = strtolower($type[1]); // jpg, png, gif
 
         if (!in_array($type, ['jpg', 'jpeg', 'png'])) {
-             response(['success' => false, 'message' => 'Invalid image type'], 400);
+            response(['success' => false, 'message' => 'Invalid image type'], 400);
         }
 
         $data = base64_decode($data);
 
         if ($data === false) {
-             response(['success' => false, 'message' => 'Base64 decode failed'], 400);
+            response(['success' => false, 'message' => 'Base64 decode failed'], 400);
         }
     } else {
-         response(['success' => false, 'message' => 'Invalid Base64 string'], 400);
+        response(['success' => false, 'message' => 'Invalid Base64 string'], 400);
     }
 
     // Ensure directory exists
@@ -39,7 +39,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     // Unique filename: user_timestamp_random.png
-    $filename = $_SESSION['user_id'] . '_' . time() . '_' . uniqid() . '.' . $type;
+    $filename = $_SESSION['user']['id'] . '_' . time() . '_' . uniqid() . '.' . $type;
     $filepath = SIGNATURES_DIR . $filename;
 
     if (file_put_contents($filepath, $data)) {
@@ -49,7 +49,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // OR a "view" endpoint. 
         // For PDF generation client-side, it's tricky if the client can't fetch it.
         // Solution: api/get_signature.php?file=...
-        
+
         response(['success' => true, 'path' => $filename, 'view_url' => 'api/get_signature.php?file=' . $filename]);
     } else {
         response(['success' => false, 'message' => 'Failed to save file'], 500);
