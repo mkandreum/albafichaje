@@ -438,24 +438,40 @@ class FichajeApp {
     setupCanvas(elementId) {
         const canvas = document.getElementById(elementId);
         const ctx = canvas.getContext('2d');
-
-        // High-DPI canvas scaling for crisp signatures
-        const rect = canvas.getBoundingClientRect();
-        const dpr = window.devicePixelRatio || 2; // Minimum 2x for retina displays
-
-        // Set actual canvas size (internal resolution)
-        canvas.width = rect.width * dpr;
-        canvas.height = rect.height * dpr;
-
-        // Scale context to match
-        ctx.scale(dpr, dpr);
-
-        // Set canvas CSS size to match container
-        canvas.style.width = rect.width + 'px';
-        canvas.style.height = rect.height + 'px';
-
         let isDrawing = false;
         let lastX = 0, lastY = 0;
+
+        // Robust High-DPI scaling using ResizeObserver
+        const resizeCanvas = () => {
+            const rect = canvas.getBoundingClientRect();
+            // Only resize if visible and has dimensions
+            if (rect.width === 0 || rect.height === 0) return;
+
+            const dpr = window.devicePixelRatio || 2;
+
+            // Store current content? (Simpler: just reset, assuming empty on init/resize)
+            canvas.width = rect.width * dpr;
+            canvas.height = rect.height * dpr;
+
+            ctx.scale(dpr, dpr);
+
+            // Explicitly set styles after reset
+            canvas.style.width = rect.width + 'px';
+            canvas.style.height = rect.height + 'px';
+
+            // Restore context styles
+            ctx.strokeStyle = '#0033CC';
+            ctx.lineWidth = 2.5;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+        };
+
+        // Observe size changes (handles visibility toggle and window resize)
+        const observer = new ResizeObserver(() => resizeCanvas());
+        observer.observe(canvas);
+
+        // Initial check (in case already visible)
+        resizeCanvas();
 
         const getCoords = (e) => {
             const rect = canvas.getBoundingClientRect();
