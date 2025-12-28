@@ -637,22 +637,27 @@ class FichajeApp {
         const gridHeaderRows = [
             [
                 { text: 'DIA', style: 'tableHeader', rowSpan: 2, alignment: 'center', margin: [0, 8, 0, 0] },
-                { text: 'HORA\nENTRADA 1', style: 'tableHeader', rowSpan: 2, alignment: 'center', margin: [0, 2, 0, 0] },
-                { text: 'HORA\nSALIDA 1', style: 'tableHeader', rowSpan: 2, alignment: 'center', margin: [0, 2, 0, 0] },
-                { text: 'HORA\nENTRADA 2', style: 'tableHeader', rowSpan: 2, alignment: 'center', margin: [0, 2, 0, 0] },
-                { text: 'HORA\nSALIDA 2', style: 'tableHeader', rowSpan: 2, alignment: 'center', margin: [0, 2, 0, 0] },
-                { text: 'HORAS\nTOTALES', style: 'tableHeader', rowSpan: 2, alignment: 'center', margin: [0, 2, 0, 0] },
-                { text: 'FIRMAS TURNO 1', style: 'tableHeader', colSpan: 2, alignment: 'center' },
+                { text: 'HORA ENTRADA', style: 'tableHeader', colSpan: 2, alignment: 'center' },
                 {},
-                { text: 'FIRMAS TURNO 2', style: 'tableHeader', colSpan: 2, alignment: 'center' },
+                { text: 'HORA SALIDA', style: 'tableHeader', colSpan: 2, alignment: 'center' },
+                {},
+                { text: 'HORAS\nTOTALES', style: 'tableHeader', rowSpan: 2, alignment: 'center', margin: [0, 2, 0, 0] },
+                { text: 'FIRMAS ENTRADA', style: 'tableHeader', colSpan: 2, alignment: 'center' },
+                {},
+                { text: 'FIRMAS SALIDA', style: 'tableHeader', colSpan: 2, alignment: 'center' },
                 {}
             ],
             [
-                {}, {}, {}, {}, {}, {}, // Placeholders for rowspan
-                { text: 'ENT', style: 'tableSubHeader', alignment: 'center' },
-                { text: 'SAL', style: 'tableSubHeader', alignment: 'center' },
-                { text: 'ENT', style: 'tableSubHeader', alignment: 'center' },
-                { text: 'SAL', style: 'tableSubHeader', alignment: 'center' }
+                {}, // DIA placeholder
+                { text: '1', style: 'tableSubHeader', alignment: 'center' },
+                { text: '2', style: 'tableSubHeader', alignment: 'center' },
+                { text: '1', style: 'tableSubHeader', alignment: 'center' },
+                { text: '2', style: 'tableSubHeader', alignment: 'center' },
+                {}, // HORAS placeholder
+                { text: '1', style: 'tableSubHeader', alignment: 'center' },
+                { text: '2', style: 'tableSubHeader', alignment: 'center' },
+                { text: '1', style: 'tableSubHeader', alignment: 'center' },
+                { text: '2', style: 'tableSubHeader', alignment: 'center' }
             ]
         ];
 
@@ -755,11 +760,11 @@ class FichajeApp {
             // If mainSignature is a URL/Path, we rely on generatePDF pre-processing it to base64 before calling this.
             // OR if it's already base64 (from auth/template logic)
             // In existing app structure, generatePDF does the pre-processing.
-            employeeSignature = { image: user.mainSignature, width: 100, alignment: 'center' };
+            employeeSignature = { image: user.mainSignature, width: 150, alignment: 'center' };
         }
         else if (this.signaturePad && !this.isCanvasEmpty(this.signaturePad.canvas) && user.id === (this.currentUser.id || this.currentUser.email)) {
             // Fallback to active pad for self-download
-            employeeSignature = { image: this.signaturePad.canvas.toDataURL('image/png'), width: 100, alignment: 'center' };
+            employeeSignature = { image: this.signaturePad.canvas.toDataURL('image/png'), width: 150, alignment: 'center' };
         }
 
         // Document Definition
@@ -969,20 +974,41 @@ class FichajeApp {
     async _prepareAndDownloadPdf(user, userFichajes) {
         this.showToast(`Generando PDF para ${user.nombre}...`);
 
-        const toDataURL = url => fetch(url)
-            .then(response => response.blob())
-            .then(blob => new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.onloadend = () => resolve(reader.result);
-                reader.onerror = reject;
-                reader.readAsDataURL(blob);
-            }))
-            .catch(() => null);
+        const toDataURL = url => {
+            // Convert relative URLs to absolute
+            const absoluteUrl = url.startsWith('http') ? url : `${window.location.origin}/${url}`;
+
+            return fetch(absoluteUrl)
+                .then(response => {
+                    if (!response.ok) throw new Error('Failed to fetch');
+                    return response.blob();
+                })
+                .then(blob => new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onloadend = () => resolve(reader.result);
+                    reader.onerror = reject;
+                    reader.readAsDataURL(blob);
+                }))
+                .catch((err) => {
+                    console.warn('Failed to load signature:', absoluteUrl, err);
+                    return null;
+                });
+        };
 
         const processedFichajes = await Promise.all(userFichajes.map(async f => {
             let entrySig = null; let exitSig = null;
-            if (f.entrySignature) entrySig = await toDataURL(f.entrySignature);
-            if (f.exitSignature) exitSig = await toDataURL(f.exitSignature);
+            if (f.entrySignature && !f.entrySignature.startsWith('data:')) {
+                entrySig = await toDataURL(f.entrySignature);
+            } else {
+                entrySig = f.entrySignature;
+            }
+
+            if (f.exitSignature && !f.exitSignature.startsWith('data:')) {
+                exitSig = await toDataURL(f.exitSignature);
+            } else {
+                exitSig = f.exitSignature;
+            }
+
             return { ...f, entrySignature: entrySig, exitSignature: exitSig };
         }));
 
