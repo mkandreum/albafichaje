@@ -89,26 +89,15 @@ function handleSaveFichaje()
 
     $fichajes = readJson(FICHAJES_FILE);
 
-    // Check if fichaje already exists for this user and date
-    $id = $input['id'] ?? null;
-
-    // Check if fichaje already exists by ID
-    $existingIndex = -1;
-    if ($id) {
-        foreach ($fichajes as $index => $f) {
-            if (isset($f['id']) && $f['id'] === $id) {
-                // Security check: ensure user owns this record (unless admin)
-                if ($_SESSION['user']['role'] !== 'admin' && $f['userId'] !== $userId) {
-                    response(['success' => false, 'message' => 'No autorizado para modificar este fichaje'], 403);
-                }
-                $existingIndex = $index;
-                break;
-            }
+    // Find all fichajes for this user and date
+    $existingFichajes = [];
+    foreach ($fichajes as $index => $f) {
+        if ($f['userId'] === $userId && $f['date'] === $date) {
+            $existingFichajes[] = ['index' => $index, 'fichaje' => $f];
         }
     }
 
-    $fichaje = [
-        'id' => $id ?: uniqid('fich_'), // Generate new ID if not provided
+    $newFichaje = [
         'userId' => $userId,
         'userName' => $userName,
         'date' => $date,
@@ -119,18 +108,57 @@ function handleSaveFichaje()
         'updatedAt' => date('c')
     ];
 
-    if ($existingIndex !== -1) {
-        // Update existing fichaje: Preserve created timestamp
-        $fichaje['createdAt'] = $fichajes[$existingIndex]['createdAt'] ?? date('c');
-        $fichajes[$existingIndex] = $fichaje;
+    // Determine shift number and whether to update or create
+    if (count($existingFichajes) === 0) {
+        // No fichajes exist, create shift 1
+        $newFichaje['shift'] = 1;
+        $newFichaje['createdAt'] = date('c');
+        $fichajes[] = $newFichaje;
+    } elseif (count($existingFichajes) === 1) {
+        // One fichaje exists, check if we should update it or create shift 2
+        $existing = $existingFichajes[0];
+        $existingEntry = strtotime("2000-01-01 " . $existing['fichaje']['entryTime']);
+        $newEntry = strtotime("2000-01-01 " . $entryTime);
+
+        // If new entry time is within 1 hour of existing, update it
+        $timeDiff = abs($newEntry - $existingEntry);
+        if ($timeDiff < 3600) { // 1 hour = 3600 seconds
+            // Update existing fichaje
+            $newFichaje['shift'] = $existing['fichaje']['shift'];
+            $newFichaje['createdAt'] = $existing['fichaje']['createdAt'];
+            $fichajes[$existing['index']] = $newFichaje;
+        } else {
+            // Create shift 2
+            $newFichaje['shift'] = 2;
+            $newFichaje['createdAt'] = date('c');
+            $fichajes[] = $newFichaje;
+        }
     } else {
-        // Add new fichaje
-        $fichaje['createdAt'] = date('c');
-        $fichajes[] = $fichaje;
+        // Two fichajes exist, determine which to update based on time proximity
+        $shift1 = $existingFichajes[0];
+        $shift2 = $existingFichajes[1];
+
+        $entry1 = strtotime("2000-01-01 " . $shift1['fichaje']['entryTime']);
+        $entry2 = strtotime("2000-01-01 " . $shift2['fichaje']['entryTime']);
+        $newEntry = strtotime("2000-01-01 " . $entryTime);
+
+        $diff1 = abs($newEntry - $entry1);
+        $diff2 = abs($newEntry - $entry2);
+
+        // Update the closest one
+        if ($diff1 < $diff2) {
+            $newFichaje['shift'] = 1;
+            $newFichaje['createdAt'] = $shift1['fichaje']['createdAt'];
+            $fichajes[$shift1['index']] = $newFichaje;
+        } else {
+            $newFichaje['shift'] = 2;
+            $newFichaje['createdAt'] = $shift2['fichaje']['createdAt'];
+            $fichajes[$shift2['index']] = $newFichaje;
+        }
     }
 
     writeJson(FICHAJES_FILE, $fichajes);
 
-    response(['success' => true, 'fichaje' => $fichaje]);
+    response(['success' => true, 'fichaje' => $newFichaje]);
 }
 ?>
