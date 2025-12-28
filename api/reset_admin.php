@@ -23,7 +23,7 @@ if (!$found) {
     $users[] = [
         'id' => uniqid(),
         'email' => 'admin@fichajes.com',
-        'password' => password_hash('admin123', PASSWORD_DEFAULT),
+        'password' => password_hash('albafichaje2025', PASSWORD_DEFAULT),
         'nombre' => 'Administrador',
         'apellidos' => 'Sistema',
         'role' => 'admin',
@@ -33,14 +33,32 @@ if (!$found) {
         'createdAt' => date('c')
     ];
     $found = true;
-    echo "Admin user CREATED with password 'admin123'.<br>";
+    echo "<h1>USUARIO CREADO</h1>";
+} else {
+    // Force update existing
+    foreach ($users as &$u) {
+        if ($u['email'] === 'admin@fichajes.com') {
+            $u['password'] = password_hash('albafichaje2025', PASSWORD_DEFAULT);
+            $u['forcePasswordChange'] = true;
+        }
+    }
+    echo "<h1>CONTRASEÑA RESETEADA</h1>";
 }
 
 if ($found) {
-    writeJson(USERS_FILE, $users);
-    echo "Admin password reset/set to 'admin123'. Force change enabled.";
-} else {
-    // Should be unreachable now
-    echo "Error processing users.";
+    $result = writeJson(USERS_FILE, $users);
+
+    if ($result === false) {
+        echo "<h2>ERROR CRITICO: No se pudo escribir en " . USERS_FILE . ". Chequea permisos.</h2>";
+    } else {
+        echo "<p>Archivo guardado correctamente.</p>";
+        echo "<p>Usa: <strong>admin@fichajes.com</strong> / <strong>albafichaje2025</strong></p>";
+    }
+
+    echo "<pre>";
+    print_r(array_map(function ($u) {
+        unset($u['password']);
+        return $u; }, $users));
+    echo "</pre>";
 }
 ?>
