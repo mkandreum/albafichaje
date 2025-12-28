@@ -1243,6 +1243,12 @@ body::before {
     border-radius: 20px;
     width: 90%;
     max-width: 350px;
+    max-height: 90vh;
+    /* Limit height */
+    overflow-y: auto;
+    /* Enable internal scroll */
+    -webkit-overflow-scrolling: touch;
+    /* Smooth scroll on iOS */
     text-align: center;
     display: flex;
     flex-direction: column;
