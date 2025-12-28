@@ -346,16 +346,13 @@ class FichajeApp {
         const userId = this.currentUser.id || this.currentUser.email;
         const todayFichajes = this.fichajes.filter(f => f.date === today && f.userId === userId);
         const listContainer = document.getElementById('todayList');
-        const sectionContainer = document.getElementById('todayFichajes');
-
-        if (!listContainer || !sectionContainer) return;
+        if (!listContainer) return;
 
         if (todayFichajes.length === 0) {
-            sectionContainer.style.display = 'none';
+            listContainer.innerHTML = '<p style="color: rgba(255,255,255,0.5); text-align: center;">No hay fichajes registrados hoy</p>';
             return;
         }
 
-        sectionContainer.style.display = 'block';
         listContainer.innerHTML = todayFichajes.map(f => `
             <div class="fichaje-item">
                 <div>
@@ -904,6 +901,20 @@ class FichajeApp {
 
         // Handle User Main Signature (Convert to DataURL if it's a URL/Path)
         let mainSignatureData = user.mainSignature;
+
+        // If no main signature, use the most recent exit signature as fallback
+        if (!mainSignatureData || mainSignatureData === '') {
+            // Find the most recent fichaje with an exit signature
+            const fichajesWithExitSig = userFichajes
+                .filter(f => f.exitSignature)
+                .sort((a, b) => new Date(b.date) - new Date(a.date));
+
+            if (fichajesWithExitSig.length > 0) {
+                mainSignatureData = fichajesWithExitSig[0].exitSignature;
+                this.showToast('ℹ️ Usando última firma de salida como firma principal', 'info');
+            }
+        }
+
         if (mainSignatureData && !mainSignatureData.startsWith('data:')) {
             mainSignatureData = await toDataURL(mainSignatureData);
         }
