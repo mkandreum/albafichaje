@@ -295,6 +295,13 @@ function handleRegister()
         }
     }
 
+    // Check if DNI already exists
+    foreach ($users as $u) {
+        if (!empty($u['dni']) && !empty($dni) && $u['dni'] === $dni) {
+            response(['success' => false, 'message' => 'El DNI ya está registrado'], 400);
+        }
+    }
+
     // Special admin email - only allow once
     $isAdminEmail = ($email === 'admin@fichaje.com');
     if ($isAdminEmail) {
