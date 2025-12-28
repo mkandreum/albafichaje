@@ -90,15 +90,25 @@ function handleSaveFichaje()
     $fichajes = readJson(FICHAJES_FILE);
 
     // Check if fichaje already exists for this user and date
+    $id = $input['id'] ?? null;
+
+    // Check if fichaje already exists by ID
     $existingIndex = -1;
-    foreach ($fichajes as $index => $f) {
-        if ($f['userId'] === $userId && $f['date'] === $date) {
-            $existingIndex = $index;
-            break;
+    if ($id) {
+        foreach ($fichajes as $index => $f) {
+            if (isset($f['id']) && $f['id'] === $id) {
+                // Security check: ensure user owns this record (unless admin)
+                if ($_SESSION['user']['role'] !== 'admin' && $f['userId'] !== $userId) {
+                    response(['success' => false, 'message' => 'No autorizado para modificar este fichaje'], 403);
+                }
+                $existingIndex = $index;
+                break;
+            }
         }
     }
 
     $fichaje = [
+        'id' => $id ?: uniqid('fich_'), // Generate new ID if not provided
         'userId' => $userId,
         'userName' => $userName,
         'date' => $date,
@@ -110,7 +120,8 @@ function handleSaveFichaje()
     ];
 
     if ($existingIndex !== -1) {
-        // Update existing fichaje
+        // Update existing fichaje: Preserve created timestamp
+        $fichaje['createdAt'] = $fichajes[$existingIndex]['createdAt'] ?? date('c');
         $fichajes[$existingIndex] = $fichaje;
     } else {
         // Add new fichaje

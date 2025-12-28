@@ -274,35 +274,83 @@ class FichajeApp {
             return;
         }
 
-        const existingIndex = this.fichajes.findIndex(f => f.userId === this.currentUser.id && f.date === date);
-        if (existingIndex !== -1) {
+        // FILTER TODAY'S FICHAJES
+        const userId = this.currentUser.id || this.currentUser.email;
+        const dayFichajes = this.fichajes.filter(f => f.userId === userId && f.date === date);
+
+        // Sort by entry time
+        dayFichajes.sort((a, b) => a.entryTime.localeCompare(b.entryTime));
+
+        let targetFichajeId = null;
+        let action = 'create';
+
+        if (dayFichajes.length > 0) {
+            // Check the last fichaje
+            const lastFichaje = dayFichajes[dayFichajes.length - 1];
+
+            // Calculate proximity
+            // We compare the NEW entryTime with the LAST exitTime (or entryTime if exit is null)
+            const refTimeStr = lastFichaje.exitTime || lastFichaje.entryTime;
+            const refDate = new Date(`${date}T${refTimeStr}`);
+            const newDate = new Date(`${date}T${entryTime}`);
+
+            // Difference in hours
+            const diffHours = (newDate - refDate) / (1000 * 60 * 60);
+
+            // LOGIC: If diff < 3 hours, we assume it's a modification/correction of the CURRENT shift.
+            // If diff > 3 hours, we assume it's a NEW shift (Morning -> Afternoon).
+            if (diffHours < 3) {
+                targetFichajeId = lastFichaje.id;
+                action = 'update';
+            } else if (dayFichajes.length >= 2) {
+                // Already have 2 shifts (Morning/Afternoon). 
+                // If we are here, it means we are trying to add a 3rd one > 3 hours later? 
+                // Or maybe updating the 2nd one?
+                // Let's assume we update the last one if max shifts reached, or show error.
+                // For now: Update the last one if user insists, but normally this path implies a 3rd shift.
+                // Let's stick to the 3h rule: if >3h, it's a new shift. 
+                // But we effectively limit to 2 shifts for the PDF.
+                // Let's allow creating it, but PDF might only show 2.
+            }
+        }
+
+        if (action === 'update' && targetFichajeId) {
             this.showConfirmModal(() => {
-                this.processFichaje(date, entryTime, exitTime, existingIndex);
+                this.processFichaje(date, entryTime, exitTime, targetFichajeId); // Pass ID
             });
             return;
         }
-        this.processFichaje(date, entryTime, exitTime);
+
+        // Create new
+        this.processFichaje(date, entryTime, exitTime, null);
     }
 
-    async processFichaje(date, entryTime, exitTime, existingIndex = -1) {
+    async processFichaje(date, entryTime, exitTime, targetId = null) {
         let entrySigData = null;
         let exitSigData = null;
+
+        // Find existing fichaje object if updating
+        let existingFichaje = null;
+        if (targetId) {
+            existingFichaje = this.fichajes.find(f => f.id === targetId);
+        }
 
         if (!this.entrySignaturePad.isEmpty()) {
             const uploadRes = await this.api.uploadSignature(this.entrySignaturePad.toDataURL());
             if (uploadRes.success) entrySigData = uploadRes.view_url;
-        } else if (existingIndex !== -1) {
-            entrySigData = this.fichajes[existingIndex].entrySignature;
+        } else if (existingFichaje) {
+            entrySigData = existingFichaje.entrySignature;
         }
 
         if (!this.exitSignaturePad.isEmpty()) {
             const uploadRes = await this.api.uploadSignature(this.exitSignaturePad.toDataURL());
             if (uploadRes.success) exitSigData = uploadRes.view_url;
-        } else if (existingIndex !== -1) {
-            exitSigData = this.fichajes[existingIndex].exitSignature;
+        } else if (existingFichaje) {
+            exitSigData = existingFichaje.exitSignature;
         }
 
         const fichaje = {
+            id: targetId,
             userId: this.currentUser.id,
             userName: `${this.currentUser.nombre} ${this.currentUser.apellidos}`,
             date, entryTime, exitTime, entrySignature: entrySigData, exitSignature: exitSigData
@@ -310,7 +358,7 @@ class FichajeApp {
 
         const result = await this.api.saveFichaje(fichaje);
         if (result.success) {
-            this.showToast(existingIndex !== -1 ? 'Fichaje actualizado' : 'Fichaje registrado');
+            this.showToast(targetId ? 'Fichaje actualizado' : 'Fichaje registrado');
             await this.loadData();
             this.loadTodayFichajes();
             this.clearForm();
@@ -628,19 +676,26 @@ class FichajeApp {
         ];
 
         // 2. Main Grid Data
+        // 2. Main Grid Data
         const gridHeaderRows = [
             [
                 { text: 'DIA', style: 'tableHeader', rowSpan: 2, alignment: 'center', margin: [0, 8, 0, 0] },
-                { text: 'HORA ENTRADA', style: 'tableHeader', rowSpan: 2, alignment: 'center', margin: [0, 8, 0, 0] },
-                { text: 'HORA SALIDA', style: 'tableHeader', rowSpan: 2, alignment: 'center', margin: [0, 8, 0, 0] },
+                { text: 'HORA ENTRADA', style: 'tableHeader', colSpan: 2, alignment: 'center' },
+                { text: 'HORA SALIDA', style: 'tableHeader', colSpan: 2, alignment: 'center' },
                 { text: 'HORAS\nORDINARIAS', style: 'tableHeader', rowSpan: 2, alignment: 'center', margin: [0, 2, 0, 0] },
-                { text: 'REGISTRO DE FIRMAS', style: 'tableHeader', colSpan: 2, alignment: 'center' },
-                {} // Placeholder for colspan
+                { text: 'FIRMAS', style: 'tableHeader', colSpan: 4, alignment: 'center' }
             ],
             [
-                {}, {}, {}, {}, // Placeholders for rowspan
-                { text: 'ENTRADA', style: 'tableSubHeader', alignment: 'center' },
-                { text: 'SALIDA', style: 'tableSubHeader', alignment: 'center' }
+                {}, // Dia
+                { text: 'MAÑANA', style: 'tableSubHeader', alignment: 'center' },
+                { text: 'TARDE', style: 'tableSubHeader', alignment: 'center' },
+                { text: 'MAÑANA', style: 'tableSubHeader', alignment: 'center' },
+                { text: 'TARDE', style: 'tableSubHeader', alignment: 'center' },
+                {}, // Horas
+                { text: 'MAÑANA\nENTRADA', style: 'tableSubHeader', alignment: 'center', fontSize: 6 },
+                { text: 'MAÑANA\nSALIDA', style: 'tableSubHeader', alignment: 'center', fontSize: 6 },
+                { text: 'TARDE\nENTRADA', style: 'tableSubHeader', alignment: 'center', fontSize: 6 },
+                { text: 'TARDE\nSALIDA', style: 'tableSubHeader', alignment: 'center', fontSize: 6 }
             ]
         ];
 
@@ -648,45 +703,62 @@ class FichajeApp {
         let totalHorasMensuales = 0;
 
         // Generate rows 1 to 31
+        // Generate rows 1 to 31
         for (let day = 1; day <= 31; day++) {
             const checkDate = `${currentYear}-${(currentMonth + 1).toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
-            const fichaje = fichajes.find(f => f.date === checkDate);
+            // Get all fichajes for this user and this date
+            const dayFichajes = fichajes.filter(f => f.date === checkDate);
+            // Sort by time
+            dayFichajes.sort((a, b) => a.entryTime.localeCompare(b.entryTime));
 
-            let entry = '';
-            let exit = '';
-            let hours = '';
-            let entrySigCell = '';
-            let exitSigCell = '';
+            let m_entry = '', m_exit = '', t_entry = '', t_exit = '';
+            let m_hours = 0, t_hours = 0;
+            let m_entrySig = '', m_exitSig = '', t_entrySig = '', t_exitSig = '';
 
-            if (fichaje) {
-                entry = fichaje.entryTime;
-                exit = fichaje.exitTime;
+            // Shift 1 (Morning or First)
+            if (dayFichajes[0]) {
+                const f1 = dayFichajes[0];
+                m_entry = f1.entryTime;
+                m_exit = f1.exitTime;
+                if (f1.entrySignature) m_entrySig = { image: f1.entrySignature, width: 20 };
+                if (f1.exitSignature) m_exitSig = { image: f1.exitSignature, width: 20 };
 
-                // Calculate hours difference
-                const start = new Date(`2000-01-01T${entry}`);
-                const end = new Date(`2000-01-01T${exit}`);
-                if (end > start) {
-                    const diffMs = end - start;
-                    const diffHrs = diffMs / 3600000;
-                    totalHorasMensuales += diffHrs;
-                    hours = diffHrs.toFixed(2);
-                }
-
-                if (fichaje.entrySignature) {
-                    entrySigCell = { image: fichaje.entrySignature, width: 25, alignment: 'center', margin: [0, 2, 0, 0] };
-                }
-                if (fichaje.exitSignature) {
-                    exitSigCell = { image: fichaje.exitSignature, width: 25, alignment: 'center', margin: [0, 2, 0, 0] };
+                if (m_exit && m_entry) {
+                    const start = new Date(`2000-01-01T${m_entry}`);
+                    const end = new Date(`2000-01-01T${m_exit}`);
+                    if (end > start) m_hours = (end - start) / 3600000;
                 }
             }
 
+            // Shift 2 (Afternoon or Second)
+            if (dayFichajes[1]) {
+                const f2 = dayFichajes[1];
+                t_entry = f2.entryTime;
+                t_exit = f2.exitTime;
+                if (f2.entrySignature) t_entrySig = { image: f2.entrySignature, width: 20 };
+                if (f2.exitSignature) t_exitSig = { image: f2.exitSignature, width: 20 };
+
+                if (t_exit && t_entry) {
+                    const start = new Date(`2000-01-01T${t_entry}`);
+                    const end = new Date(`2000-01-01T${t_exit}`);
+                    if (end > start) t_hours = (end - start) / 3600000;
+                }
+            }
+
+            const dailyTotal = m_hours + t_hours;
+            totalHorasMensuales += dailyTotal;
+
             gridBody.push([
                 { text: day.toString(), alignment: 'center', style: 'tableCell' },
-                { text: entry, alignment: 'center', style: 'tableCell' },
-                { text: exit, alignment: 'center', style: 'tableCell' },
-                { text: hours, alignment: 'center', style: 'tableCell' },
-                entrySigCell,
-                exitSigCell
+                { text: m_entry, alignment: 'center', style: 'tableCell' },
+                { text: m_exit, alignment: 'center', style: 'tableCell' },
+                { text: t_entry, alignment: 'center', style: 'tableCell' },
+                { text: t_exit, alignment: 'center', style: 'tableCell' },
+                { text: dailyTotal > 0 ? dailyTotal.toFixed(2) : '', alignment: 'center', style: 'tableCell' },
+                m_entrySig,
+                m_exitSig,
+                t_entrySig,
+                t_exitSig
             ]);
         }
 
@@ -695,9 +767,11 @@ class FichajeApp {
             { text: 'TOTAL\nHORAS', colSpan: 1, style: 'tableTotal', alignment: 'center' },
             { text: '', colSpan: 1, style: 'tableTotal' },
             { text: '', colSpan: 1, style: 'tableTotal' },
+            { text: '', colSpan: 1, style: 'tableTotal' },
+            { text: '', colSpan: 1, style: 'tableTotal' },
             { text: totalHorasMensuales > 0 ? totalHorasMensuales.toFixed(2) : '', alignment: 'center', style: 'tableTotal' },
-            { text: '', colSpan: 2, style: 'tableTotal' },
-            {}
+            { text: '', colSpan: 4, style: 'tableTotal' },
+            {}, {}, {}
         ]);
 
         // Signature Check
@@ -736,7 +810,7 @@ class FichajeApp {
                     style: 'mainGrid',
                     table: {
                         headerRows: 2,
-                        widths: ['10%', '20%', '20%', '20%', '15%', '15%'],
+                        widths: ['5%', '10%', '10%', '10%', '10%', '10%', '9%', '9%', '9%', '9%'], // 10 columns
                         body: gridBody
                     },
                     layout: {
