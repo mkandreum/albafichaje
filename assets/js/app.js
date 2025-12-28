@@ -680,9 +680,12 @@ class FichajeApp {
             [
                 { text: 'DIA', style: 'tableHeader', rowSpan: 2, alignment: 'center', margin: [0, 8, 0, 0] },
                 { text: 'HORA ENTRADA', style: 'tableHeader', colSpan: 2, alignment: 'center' },
+                {}, // Placeholder for HORA ENTRADA colSpan
                 { text: 'HORA SALIDA', style: 'tableHeader', colSpan: 2, alignment: 'center' },
+                {}, // Placeholder for HORA SALIDA colSpan
                 { text: 'HORAS\nORDINARIAS', style: 'tableHeader', rowSpan: 2, alignment: 'center', margin: [0, 2, 0, 0] },
-                { text: 'FIRMAS', style: 'tableHeader', colSpan: 4, alignment: 'center' }
+                { text: 'FIRMAS', style: 'tableHeader', colSpan: 4, alignment: 'center' },
+                {}, {}, {} // Placeholders for FIRMAS colSpan
             ],
             [
                 {}, // Dia
@@ -701,7 +704,6 @@ class FichajeApp {
         const gridBody = [...gridHeaderRows];
         let totalHorasMensuales = 0;
 
-        // Generate rows 1 to 31
         // Generate rows 1 to 31
         for (let day = 1; day <= 31; day++) {
             const checkDate = `${currentYear}-${(currentMonth + 1).toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
