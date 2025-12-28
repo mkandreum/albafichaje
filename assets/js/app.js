@@ -455,9 +455,14 @@ class FichajeApp {
 
             ctx.scale(dpr, dpr);
 
-            // Explicitly set styles after reset
-            canvas.style.width = rect.width + 'px';
-            canvas.style.height = rect.height + 'px';
+            canvas.width = rect.width * dpr;
+            canvas.height = rect.height * dpr;
+
+            ctx.scale(dpr, dpr);
+
+            // Do NOT set canvas.style.width/height here
+            // Let CSS (width: 100%; height: 100%) handle the display size
+            // This ensures it fills the container perfectly even if container resizes dynamically
 
             // Restore context styles
             ctx.strokeStyle = '#0033CC';
