@@ -209,9 +209,7 @@ class FichajeApp {
     async handleLogout() {
         await this.api.logout();
         this.currentUser = null;
-        this.fichajes = [];
-        clearTimeout(this.inactivityTimer);
-        this.showScreen('login');
+        window.location.reload();
         this.showToast('Sesión cerrada correctamente', 'success');
         document.getElementById('loginEmail').value = '';
         document.getElementById('loginPassword').value = '';
