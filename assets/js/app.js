@@ -676,7 +676,6 @@ class FichajeApp {
         ];
 
         // 2. Main Grid Data
-        // 2. Main Grid Data
         const gridHeaderRows = [
             [
                 { text: 'DIA', style: 'tableHeader', rowSpan: 2, alignment: 'center', margin: [0, 8, 0, 0] },
