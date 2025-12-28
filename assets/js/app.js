@@ -777,14 +777,14 @@ class FichajeApp {
                     style: 'mainGrid',
                     table: {
                         headerRows: 1,
-                        widths: ['6%', '11%', '11%', '11%', '11%', '10%', '10%', '10%', '10%', '10%'],
+                        widths: ['8%', '11%', '11%', '11%', '11%', '10%', '9.5%', '9.5%', '9.5%', '9.5%'],
                         body: gridBody
                     },
                     layout: {
                         hLineWidth: function (i, node) { return 0.5; },
                         vLineWidth: function (i, node) { return 0.5; },
                         fillColor: function (rowIndex, node, columnIndex) {
-                            return (rowIndex < 2) ? '#eeeeee' : null;
+                            return (rowIndex < 1) ? '#eeeeee' : null;
                         }
                     }
                 },
