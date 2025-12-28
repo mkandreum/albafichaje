@@ -860,14 +860,21 @@ class FichajeApp {
             const filename = `FICHAJE_MENSUAL_${dni}_${monthName}_${currentYear}.pdf`;
             console.log('Generating PDF with filename:', filename);
 
-            // Mobile browsers often block async downloads. Use open() or standard download based on device.
-            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+            // Force download using Blob to ensure filename is respected on Android/Mobile
+            pdf.getBlob((blob) => {
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
 
-            if (isMobile) {
-                pdf.open(); // Opens in new tab/window, better for mobile
-            } else {
-                pdf.download(filename);
-            }
+                // Cleanup
+                setTimeout(() => {
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                }, 100);
+            });
 
             this.showToast('PDF Generado', 'success');
         } catch (e) {
