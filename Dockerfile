@@ -2,6 +2,7 @@ FROM php:8.2-apache
 
 # Enable mod_rewrite for nice URLs if needed (standard practice)
 RUN a2enmod rewrite
+RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf
 
 # Set working directory
 WORKDIR /var/www/html
