@@ -434,13 +434,14 @@ class FichajeApp {
             if (currentDate > today) dayElement.classList.add('future');
 
             const hasFichaje = this.fichajes.some(f => f.date === dateString && f.userId === userId);
-            const isWeekday = dayOfWeek >= 1 && dayOfWeek <= 5;
             const isPast = currentDate < today && dateString !== today.toISOString().split('T')[0];
 
-            if (isPast && isWeekday && !hasFichaje) dayElement.classList.add('missing');
+            // Show missing indicator for past days without fichaje (including weekends)
+            if (isPast && !hasFichaje) dayElement.classList.add('missing');
             else if (hasFichaje) dayElement.classList.add('complete');
 
-            dayElement.innerHTML = `<span class="day-number">${day}</span>${(hasFichaje || (isPast && isWeekday && !hasFichaje)) ? '<span class="day-indicator"></span>' : ''}`;
+            // Show indicator for all days with fichaje or missing fichaje
+            dayElement.innerHTML = `<span class="day-number">${day}</span>${(hasFichaje || isPast) ? '<span class="day-indicator"></span>' : ''}`;
             grid.appendChild(dayElement);
         }
     }
