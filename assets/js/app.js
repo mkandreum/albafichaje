@@ -653,15 +653,15 @@ class FichajeApp {
         // 2. Main Grid Data - DUAL SHIFTS
         const gridHeaderRows = [
             [
-                { text: 'DIA', style: 'tableHeader', alignment: 'center', margin: [0, 8, 0, 0] },
-                { text: 'HORA ENTRADA', style: 'tableHeader', colSpan: 2, alignment: 'center' },
+                { text: 'DIA', style: 'tableHeader', alignment: 'center', margin: [0, 2, 0, 0] },
+                { text: 'HORA ENTRADA', style: 'tableHeader', colSpan: 2, alignment: 'center', margin: [0, 2, 0, 0] },
                 {},
-                { text: 'HORA SALIDA', style: 'tableHeader', colSpan: 2, alignment: 'center' },
+                { text: 'HORA SALIDA', style: 'tableHeader', colSpan: 2, alignment: 'center', margin: [0, 2, 0, 0] },
                 {},
                 { text: 'HORAS TOTALES', style: 'tableHeader', alignment: 'center', margin: [0, 2, 0, 0] },
-                { text: 'FIRMAS ENTRADA', style: 'tableHeader', colSpan: 2, alignment: 'center' },
+                { text: 'FIRMAS ENTRADA', style: 'tableHeader', colSpan: 2, alignment: 'center', margin: [0, 2, 0, 0] },
                 {},
-                { text: 'FIRMAS SALIDA', style: 'tableHeader', colSpan: 2, alignment: 'center' },
+                { text: 'FIRMAS SALIDA', style: 'tableHeader', colSpan: 2, alignment: 'center', margin: [0, 2, 0, 0] },
                 {}
             ]
         ];
