@@ -765,11 +765,11 @@ class FichajeApp {
             // If mainSignature is a URL/Path, we rely on generatePDF pre-processing it to base64 before calling this.
             // OR if it's already base64 (from auth/template logic)
             // In existing app structure, generatePDF does the pre-processing.
-            employeeSignature = { image: user.mainSignature, width: 130, alignment: 'center' };
+            employeeSignature = { image: user.mainSignature, width: 110, alignment: 'center' };
         }
         else if (this.signaturePad && !this.isCanvasEmpty(this.signaturePad.canvas) && user.id === (this.currentUser.id || this.currentUser.email)) {
             // Fallback to active pad for self-download
-            employeeSignature = { image: this.signaturePad.canvas.toDataURL('image/png'), width: 130, alignment: 'center' };
+            employeeSignature = { image: this.signaturePad.canvas.toDataURL('image/png'), width: 110, alignment: 'center' };
         }
 
         // Document Definition
@@ -831,7 +831,7 @@ class FichajeApp {
                         { text: currentYear.toString(), decoration: 'underline' }
                     ],
                     alignment: 'right',
-                    margin: [0, 0, 40, 2]
+                    margin: [0, 10, 40, 2]
                 },
                 {
                     text: 'Registro realizado en cumplimiento de la letra h) del artículo 1 del R.D.-Ley 16/2013, de 20 de diciembre por el que se modifica el artículo 12.5 del E.T., por el que se establece que "La jornada de los trabajadores a tiempo parcial se registrará día a día y se totalizará mensualmente, entregando copia al trabajador, junto con el recibo de salarios, del resumen de todas las horas realizadas en cada mes, tanto de las ordinarias como de las complementarias en sus distintas modalidades.\n\nEl empresario deberá conservar los resúmenes mensuales de los registros de jornada durante un periodo mínimo de cuatro años. El incumplimiento empresarial de estas obligaciones de registro tendrá por consecuencia jurídica la de que el contrato se presuma celebrado a jornada completa, salvo prueba en contrario que acredite el carácter parcial de los servicios.',
@@ -849,7 +849,7 @@ class FichajeApp {
                 tableCell: { fontSize: 8, margin: [0, 1, 0, 1] },
                 tableTotal: { fontSize: 9, bold: true, fillColor: '#eeeeee' },
                 signatureLabel: { fontSize: 10, bold: true },
-                legalText: { fontSize: 5, alignment: 'justify', color: '#444444' }
+                legalText: { fontSize: 4.5, alignment: 'justify', color: '#444444' }
             }
         };
 
