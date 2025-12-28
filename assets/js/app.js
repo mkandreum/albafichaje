@@ -502,7 +502,9 @@ class FichajeApp {
             window.pdfMake.vfs = window.pdfMake.vfs;
         }
 
-        const currentDate = new Date();
+        // Use the selected month from the app state (Historico tab)
+        // instead of the current real-time date.
+        const currentDate = new Date(this.currentMonth);
         const currentMonth = currentDate.getMonth();
         const currentYear = currentDate.getFullYear();
 
