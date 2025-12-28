@@ -200,9 +200,16 @@ class FichajeApp {
     }
 
     updateUserInfo() {
-        const initials = (this.currentUser.nombre[0] + this.currentUser.apellidos[0]).toUpperCase();
+        if (!this.currentUser) return;
+
+        // Handle potential key mismatch or missing data
+        const nombre = this.currentUser.nombre || this.currentUser.name || 'Usuario';
+        const apellidos = this.currentUser.apellidos || '';
+
+        const initials = ((nombre[0] || '?') + (apellidos[0] || '')).toUpperCase();
+
         document.getElementById('userInitials').textContent = initials;
-        document.getElementById('userName').textContent = `${this.currentUser.nombre} ${this.currentUser.apellidos}`;
+        document.getElementById('userName').textContent = `${nombre} ${apellidos}`;
         document.getElementById('userRole').textContent = this.currentUser.role === 'admin' ? 'Administrador' : 'Empleado';
     }
 
@@ -410,7 +417,7 @@ class FichajeApp {
             if (!isDrawing) return;
             e.preventDefault();
             const coords = getCoords(e);
-            ctx.strokeStyle = '#000000';
+            ctx.strokeStyle = '#0033CC'; /* Dark Blue Ink */
             ctx.lineWidth = 2;
             ctx.lineCap = 'round';
             ctx.lineJoin = 'round';

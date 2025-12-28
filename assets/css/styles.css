@@ -934,6 +934,13 @@ body::before {
     margin-bottom: 15px;
 }
 
+@media (max-width: 600px) {
+    .signatures-grid {
+        grid-template-columns: 1fr;
+        /* Stack on mobile */
+    }
+}
+
 .mini-sig-container {
     margin-top: 0;
     /* Reset */
@@ -941,18 +948,75 @@ body::before {
     flex-direction: column;
 }
 
-.glass-signature-pad.mini {
-    height: 60px;
-    /* Reduced specific height */
-    background: rgba(0, 0, 0, 0.2);
+/* Base Signature Pad */
+.glass-signature-pad {
+    background: #FFFFFF;
+    /* Pure White */
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    border: 1px solid rgba(255, 255, 255, 0.2);
     border-radius: 12px;
+    position: relative;
+    overflow: hidden;
+    touch-action: none;
+    /* Disable scroll on pad */
+}
+
+.glass-signature-pad canvas {
+    display: block;
     width: 100%;
+    height: 100%;
+}
+
+.glass-signature-pad.mini {
+    height: 80px;
+    /* Slightly taller for ease of use */
+}
+
+/* Mobile optimizations for main signature pad */
+@media (max-height: 800px) {
+    #signaturePad {
+        /* This ID selector might need to be on the CONTAINER class if the canvas is sized by JS */
+        /* But CSS can force container height */
+    }
+
+    .signature-section {
+        margin-top: 5px;
+    }
+
+    .signature-section .glass-signature-pad {
+        height: 180px;
+        /* Reduce from default 300px? Canvas is 300px height attr */
+    }
+}
+
+@media (max-height: 600px) {
+    .signature-section .glass-signature-pad {
+        height: 140px;
+        /* Even smaller */
+    }
+}
+
+/* Restore text-btn */
+.text-btn {
+    background: none;
+    border: none;
+    color: var(--accent-primary);
+    font-size: 12px;
+    padding: 5px 0;
+    cursor: pointer;
+    margin-top: 2px;
+    opacity: 0.8;
+}
+
+.text-btn:hover {
+    opacity: 1;
+    text-decoration: underline;
 }
 
 /* ==========================================
    FLOATING DOCK - Pure Liquid Glass
    ========================================== */
-
 .floating-tab-bar {
     position: fixed;
     bottom: calc(10px + var(--safe-area-bottom));
