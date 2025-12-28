@@ -57,6 +57,13 @@ class FichajeApp {
         const session = await this.api.checkSession();
         if (session.success) {
             this.currentUser = session.user;
+            this.currentUser = session.user;
+
+            if (this.currentUser.forcePasswordChange) {
+                this.showScreen('changePassword');
+                return; /* Stop loading app */
+            }
+
             await this.loadData();
             this.showApp();
             this.renderCalendar();
@@ -123,18 +130,22 @@ class FichajeApp {
 
         if (result.success) {
             this.currentUser = result.user;
+
+            if (this.currentUser.forcePasswordChange) {
+                this.showScreen('changePassword');
+                this.showToast('Por seguridad, debes cambiar tu contraseña');
+                return;
+            }
+
             await this.loadData();
             this.showApp();
-            this.showToast('Bienvenido, ' + this.currentUser.nombre);
+            this.showToast('Bienvenido, ' + (this.currentUser.nombre || 'Usuario'));
             this.loadTodayFichajes();
             this.renderCalendar();
             if (this.currentUser.role === 'admin') {
                 document.getElementById('adminTabBtn').style.display = 'flex';
-                const allFichajes = await this.api.getAllFichajes();
-                if (allFichajes.success) {
-                    this.fichajes = allFichajes.fichajes;
-                    this.loadAdminData();
-                }
+                // Only load admin functionality on demand inside showApp or here
+                if (this.loadAdminData) setTimeout(() => this.loadAdminData(), 500);
             }
         } else {
             this.showToast(result.message || 'Error de login', 'error');
@@ -164,6 +175,34 @@ class FichajeApp {
             this.showScreen('app');
         } else {
             this.showToast(result.message || 'Error en registro', 'error');
+        }
+    }
+
+    async handleChangePassword(e) {
+        e.preventDefault();
+        const newPassword = document.getElementById('newPassword').value;
+
+        if (newPassword.length < 6) {
+            this.showToast('La contraseña debe tener al menos 6 caracteres', 'error');
+            return;
+        }
+
+        const result = await this.api.request('auth.php?action=change_password', 'POST', { newPassword });
+
+        if (result.success) {
+            this.showToast('Contraseña actualizada correctamente');
+            // Update local user object to remove flag
+            this.currentUser = result.user;
+            // Proceed to App
+            await this.loadData();
+            this.showApp();
+            this.renderCalendar();
+            this.loadTodayFichajes();
+            if (this.currentUser.role === 'admin') {
+                document.getElementById('adminTabBtn').style.display = 'flex';
+            }
+        } else {
+            this.showToast(result.message || 'Error al actualizar', 'error');
         }
     }
 
