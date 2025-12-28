@@ -855,8 +855,9 @@ class FichajeApp {
         try {
             const pdf = pdfMake.createPdf(docDefinition);
             const monthNumber = (currentMonth + 1).toString().padStart(2, '0');
+            const monthName = monthNames[currentMonth].toUpperCase();
             const dni = user.dni || 'SIN_DNI';
-            const filename = `${dni}_${monthNumber}_${currentYear}.pdf`;
+            const filename = `FICHAJE_MENSUAL_${dni}_${monthName}_${currentYear}.pdf`;
             console.log('Generating PDF with filename:', filename);
 
             // Mobile browsers often block async downloads. Use open() or standard download based on device.
