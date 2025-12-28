@@ -616,7 +616,7 @@ class FichajeApp {
         // actually _prepareAndDownloadPdf handles the heavy lifting of images.
         // We just need to pass the user with the mainSignature attached.
 
-        this._prepareAndDownloadPdf(this.currentUser, userFichajes);
+        this._createAndDownloadPdf(this.currentUser, userFichajes);
     }
 
     // ==========================================
