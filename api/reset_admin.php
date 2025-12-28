@@ -18,10 +18,29 @@ foreach ($users as &$user) {
     }
 }
 
+if (!$found) {
+    // Create Default Admin
+    $users[] = [
+        'id' => uniqid(),
+        'email' => 'admin@fichajes.com',
+        'password' => password_hash('admin123', PASSWORD_DEFAULT),
+        'nombre' => 'Administrador',
+        'apellidos' => 'Sistema',
+        'role' => 'admin',
+        'dni' => '00000000T',
+        'afiliacion' => '000000000000',
+        'forcePasswordChange' => true,
+        'createdAt' => date('c')
+    ];
+    $found = true;
+    echo "Admin user CREATED with password 'admin123'.<br>";
+}
+
 if ($found) {
     writeJson(USERS_FILE, $users);
-    echo "Admin password reset to 'admin123'. Force change enabled.";
+    echo "Admin password reset/set to 'admin123'. Force change enabled.";
 } else {
-    echo "Admin user not found.";
+    // Should be unreachable now
+    echo "Error processing users.";
 }
 ?>
