@@ -346,13 +346,16 @@ class FichajeApp {
         const userId = this.currentUser.id || this.currentUser.email;
         const todayFichajes = this.fichajes.filter(f => f.date === today && f.userId === userId);
         const listContainer = document.getElementById('todayList');
-        if (!listContainer) return;
+        const sectionContainer = document.getElementById('todayFichajes');
+
+        if (!listContainer || !sectionContainer) return;
 
         if (todayFichajes.length === 0) {
-            listContainer.innerHTML = '<p style="color: rgba(255,255,255,0.5); text-align: center;">No hay fichajes registrados hoy</p>';
+            sectionContainer.style.display = 'none';
             return;
         }
 
+        sectionContainer.style.display = 'block';
         listContainer.innerHTML = todayFichajes.map(f => `
             <div class="fichaje-item">
                 <div>
