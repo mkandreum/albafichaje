@@ -716,13 +716,13 @@ class FichajeApp {
             gridBody.push([
                 { text: day.toString(), alignment: 'center', style: 'tableCell' },
                 { text: entry1, alignment: 'center', style: 'tableCell' },
-                { text: exit1, alignment: 'center', style: 'tableCell' },
                 { text: entry2, alignment: 'center', style: 'tableCell' },
+                { text: exit1, alignment: 'center', style: 'tableCell' },
                 { text: exit2, alignment: 'center', style: 'tableCell' },
                 { text: totalHours, alignment: 'center', style: 'tableCell' },
                 entry1Sig,
-                exit1Sig,
                 entry2Sig,
+                exit1Sig,
                 exit2Sig
             ]);
         }
