@@ -823,29 +823,29 @@ class FichajeApp {
 
             return `
                 <div class="employee-card">
-                    <div class="user-info">
-                        <div class="user-avatar" style="width: 40px; height: 40px; font-size: 16px;">
+                    <div style="display: flex; gap: 10px; align-items: flex-start;">
+                        <div class="user-avatar" style="width: 36px; height: 36px; font-size: 14px; flex-shrink: 0;">
                             ${(user.nombre[0] + user.apellidos[0]).toUpperCase()}
                         </div>
-                        <div>
-                            <h4 style="margin: 0;">${user.nombre} ${user.apellidos}</h4>
-                            <p style="margin: 0; font-size: 12px; color: var(--text-secondary);">
-                                ${user.email} | DNI: ${user.dni || '-'}
+                        <div style="flex: 1; min-width: 0;">
+                            <h4 style="margin: 0 0 4px 0; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                ${user.nombre} ${user.apellidos}
+                            </h4>
+                            <p style="margin: 0; font-size: 11px; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                ${user.email}
+                            </p>
+                            <p style="margin: 2px 0 0 0; font-size: 11px; color: var(--text-tertiary);">
+                                DNI: ${user.dni || '-'} | Último: ${lastFichaje ? lastFichaje.date : 'Nunca'}
                             </p>
                         </div>
                     </div>
-                    <div style="display: flex; gap: 8px; justify-content: space-between; align-items: center; margin-top: 5px;">
-                        <span style="font-size: 13px; color: var(--text-secondary);">
-                            Último fichaje: ${lastFichaje ? lastFichaje.date : 'Nunca'}
-                        </span>
-                        <div style="display: flex; gap: 8px;">
-                            <button class="download-btn" style="padding: 8px 12px; font-size: 12px;" onclick="window.app.resetUserPassword('${user.id}', '${user.email}')">
-                                🔑 Reset
-                            </button>
-                            <button class="download-btn" style="padding: 8px 12px; font-size: 12px;" onclick="window.app.generatePDFForUser('${user.id}')">
-                                📄 PDF
-                            </button>
-                        </div>
+                    <div style="display: flex; gap: 6px; margin-top: 8px;">
+                        <button class="download-btn" style="flex: 1; padding: 6px 8px; font-size: 11px;" onclick="window.app.resetUserPassword('${user.id}', '${user.email}')">
+                            🔑 Reset
+                        </button>
+                        <button class="download-btn" style="flex: 1; padding: 6px 8px; font-size: 11px;" onclick="window.app.generatePDFForUser('${user.id}')">
+                            📄 PDF
+                        </button>
                     </div>
                 </div>
             `;
