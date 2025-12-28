@@ -29,7 +29,7 @@ class ApiService {
     }
     async saveFichaje(data) { return this.request('fichajes.php', 'POST', data); }
     async getAllFichajes() { return this.request('fichajes.php?action=all', 'GET'); }
-    async getAllUsers() { return this.request('auth.php?action=users', 'GET'); }
+    async getAllUsers() { return this.request('auth.php?action=get_users', 'GET'); }
     async uploadSignature(base64Image) { return this.request('upload.php', 'POST', { image: base64Image }); }
 }
 
