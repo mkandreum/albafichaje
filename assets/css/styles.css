@@ -935,9 +935,10 @@ body::before {
 }
 
 @media (max-width: 600px) {
+
+    /* Keep 2 columns but reduced gap */
     .signatures-grid {
-        grid-template-columns: 1fr;
-        /* Stack on mobile */
+        gap: 8px;
     }
 }
 
@@ -969,8 +970,8 @@ body::before {
 }
 
 .glass-signature-pad.mini {
-    height: 80px;
-    /* Slightly taller for ease of use */
+    height: 60px;
+    /* Compact height */
 }
 
 /* Mobile optimizations for main signature pad */
