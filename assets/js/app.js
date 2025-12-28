@@ -636,28 +636,16 @@ class FichajeApp {
         // 2. Main Grid Data - DUAL SHIFTS
         const gridHeaderRows = [
             [
-                { text: 'DIA', style: 'tableHeader', rowSpan: 2, alignment: 'center', margin: [0, 8, 0, 0] },
+                { text: 'DIA', style: 'tableHeader', alignment: 'center', margin: [0, 8, 0, 0] },
                 { text: 'HORA ENTRADA', style: 'tableHeader', colSpan: 2, alignment: 'center' },
                 {},
                 { text: 'HORA SALIDA', style: 'tableHeader', colSpan: 2, alignment: 'center' },
                 {},
-                { text: 'HORAS\nTOTALES', style: 'tableHeader', rowSpan: 2, alignment: 'center', margin: [0, 2, 0, 0] },
+                { text: 'HORAS\nTOTALES', style: 'tableHeader', alignment: 'center', margin: [0, 2, 0, 0] },
                 { text: 'FIRMAS ENTRADA', style: 'tableHeader', colSpan: 2, alignment: 'center' },
                 {},
                 { text: 'FIRMAS SALIDA', style: 'tableHeader', colSpan: 2, alignment: 'center' },
                 {}
-            ],
-            [
-                {}, // DIA placeholder
-                { text: '1', style: 'tableSubHeader', alignment: 'center' },
-                { text: '2', style: 'tableSubHeader', alignment: 'center' },
-                { text: '1', style: 'tableSubHeader', alignment: 'center' },
-                { text: '2', style: 'tableSubHeader', alignment: 'center' },
-                {}, // HORAS placeholder
-                { text: '1', style: 'tableSubHeader', alignment: 'center' },
-                { text: '2', style: 'tableSubHeader', alignment: 'center' },
-                { text: '1', style: 'tableSubHeader', alignment: 'center' },
-                { text: '2', style: 'tableSubHeader', alignment: 'center' }
             ]
         ];
 
@@ -788,7 +776,7 @@ class FichajeApp {
                 {
                     style: 'mainGrid',
                     table: {
-                        headerRows: 2,
+                        headerRows: 1,
                         widths: ['6%', '11%', '11%', '11%', '11%', '10%', '10%', '10%', '10%', '10%'],
                         body: gridBody
                     },
