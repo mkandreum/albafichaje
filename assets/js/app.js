@@ -438,6 +438,22 @@ class FichajeApp {
     setupCanvas(elementId) {
         const canvas = document.getElementById(elementId);
         const ctx = canvas.getContext('2d');
+
+        // High-DPI canvas scaling for crisp signatures
+        const rect = canvas.getBoundingClientRect();
+        const dpr = window.devicePixelRatio || 2; // Minimum 2x for retina displays
+
+        // Set actual canvas size (internal resolution)
+        canvas.width = rect.width * dpr;
+        canvas.height = rect.height * dpr;
+
+        // Scale context to match
+        ctx.scale(dpr, dpr);
+
+        // Set canvas CSS size to match container
+        canvas.style.width = rect.width + 'px';
+        canvas.style.height = rect.height + 'px';
+
         let isDrawing = false;
         let lastX = 0, lastY = 0;
 
@@ -456,7 +472,7 @@ class FichajeApp {
             e.preventDefault();
             const coords = getCoords(e);
             ctx.strokeStyle = '#0033CC'; /* Dark Blue Ink */
-            ctx.lineWidth = 2;
+            ctx.lineWidth = 2.5; /* Slightly thicker for better visibility */
             ctx.lineCap = 'round';
             ctx.lineJoin = 'round';
             ctx.beginPath();
