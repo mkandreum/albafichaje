@@ -76,6 +76,9 @@ class FichajeApp {
 
             if (this.currentUser.role === 'admin') {
                 document.getElementById('adminTabBtn').style.display = 'flex';
+                // Hide settings tab for admins
+                const settingsBtn = document.querySelector('.tab-btn[data-tab="settings"]');
+                if (settingsBtn) settingsBtn.style.display = 'none';
             }
         } else {
             this.showScreen('login');
@@ -937,8 +940,13 @@ class FichajeApp {
                         <button class="download-btn" style="flex: 1; padding: 6px 8px; font-size: 11px; background: rgba(255,59,48,0.2);" onclick="window.app.deleteUser('${user.id}', '${user.email}')">
                             🗑️ Borrar
                         </button>
+                    </div>
+                    <div style="display: flex; gap: 6px; margin-top: 6px;">
                         <button class="download-btn" style="flex: 1; padding: 6px 8px; font-size: 11px;" onclick="window.app.generatePDFForUser('${user.id}')">
-                            📄 PDF
+                            📄 PDF Mes Actual
+                        </button>
+                        <button class="download-btn" style="flex: 1; padding: 6px 8px; font-size: 11px; background: rgba(52,199,89,0.2);" onclick="window.app.generateAllPDFsForUser('${user.id}', '${user.nombre} ${user.apellidos}')">
+                            📦 PDFs Históricos
                         </button>
                     </div>
                 </div>
@@ -989,6 +997,60 @@ class FichajeApp {
         // Since we don't have their live signature pad, we rely on stored signature or their profile 'mainSignature' if kept there.
         // For now, we will just pass the user object.
         this._prepareAndDownloadPdf(user, userFichajes);
+    }
+
+    async generateAllPDFsForUser(userId, userName) {
+        const user = this.users.find(u => u.id === userId);
+        if (!user) return;
+
+        const userFichajes = this.fichajes.filter(f => f.userId === userId);
+
+        if (userFichajes.length === 0) {
+            this.showToast('❌ No hay fichajes para este usuario', 'error');
+            return;
+        }
+
+        // Get unique months with data
+        const monthsSet = new Set();
+        userFichajes.forEach(f => {
+            const date = new Date(f.date);
+            const monthKey = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}`;
+            monthsSet.add(monthKey);
+        });
+
+        const months = Array.from(monthsSet).sort();
+
+        this.showToast(`📦 Generando ${months.length} PDFs para ${userName}...`, 'info');
+
+        // Generate PDFs sequentially with delay
+        for (let i = 0; i < months.length; i++) {
+            const [year, month] = months[i].split('-');
+            const monthDate = new Date(parseInt(year), parseInt(month) - 1, 1);
+
+            // Filter fichajes for this specific month
+            const monthFichajes = userFichajes.filter(f => {
+                const fDate = new Date(f.date);
+                return fDate.getFullYear() === parseInt(year) &&
+                    fDate.getMonth() === parseInt(month) - 1;
+            });
+
+            // Temporarily set currentMonth for PDF generation
+            const originalMonth = this.currentMonth;
+            this.currentMonth = monthDate;
+
+            // Generate PDF
+            await this._prepareAndDownloadPdf(user, monthFichajes);
+
+            // Restore original month
+            this.currentMonth = originalMonth;
+
+            // Small delay between PDFs
+            if (i < months.length - 1) {
+                await new Promise(resolve => setTimeout(resolve, 500));
+            }
+        }
+
+        this.showToast(`✅ ${months.length} PDFs generados`, 'success');
     }
 
     async _prepareAndDownloadPdf(user, userFichajes) {
