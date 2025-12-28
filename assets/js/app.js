@@ -87,6 +87,7 @@ class FichajeApp {
     setupEventListeners() {
         document.getElementById('loginForm').addEventListener('submit', (e) => this.handleLogin(e));
         document.getElementById('registerForm').addEventListener('submit', (e) => this.handleRegister(e));
+        document.getElementById('changePasswordForm').addEventListener('submit', (e) => this.handleChangePassword(e));
         document.getElementById('showRegisterBtn').addEventListener('click', () => this.showScreen('register'));
         document.getElementById('backToLoginBtn').addEventListener('click', () => this.showScreen('login'));
         document.getElementById('logoutBtn').addEventListener('click', () => this.handleLogout());

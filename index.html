@@ -11,7 +11,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="assets/css/styles.css?v=2.0">
+    <link rel="stylesheet" href="assets/css/styles.css?v=2.1">
 </head>
 
 <body>
@@ -129,6 +129,45 @@
 
                     <button type="button" class="glass-button secondary" id="backToLoginBtn">
                         <span>Volver al Login</span>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Change Password Screen -->
+    <div id="changePasswordScreen" class="screen">
+        <div class="login-container">
+            <div class="glass-card login-card">
+                <div class="logo-container">
+                    <div class="logo-glass">
+                        <svg width="60" height="60" viewBox="0 0 60 60" fill="none">
+                            <circle cx="30" cy="30" r="28" stroke="url(#logoGradient)" stroke-width="2" />
+                            <path d="M30 15V30L40 35" stroke="url(#logoGradient)" stroke-width="3"
+                                stroke-linecap="round" />
+                            <defs>
+                                <linearGradient id="logoGradient2" x1="0" y1="0" x2="60" y2="60">
+                                    <stop offset="0%" stop-color="#00D4FF" />
+                                    <stop offset="100%" stop-color="#FF00E5" />
+                                </linearGradient>
+                            </defs>
+                        </svg>
+                    </div>
+                </div>
+
+                <h1 class="auth-title">Cambiar Contraseña</h1>
+                <p class="auth-subtitle">Por seguridad, debes actualizar tu contraseña</p>
+
+                <form id="changePasswordForm" class="auth-form">
+                    <div class="input-group">
+                        <label for="newPassword">Nueva Contraseña</label>
+                        <div class="glass-input">
+                            <input type="password" id="newPassword" required placeholder="••••••••" minlength="6">
+                        </div>
+                    </div>
+
+                    <button type="submit" class="glass-button primary">
+                        <span>Actualizar Contraseña</span>
                     </button>
                 </form>
             </div>
@@ -356,7 +395,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.9/pdfmake.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.9/vfs_fonts.js"></script>
 
-    <script src="assets/js/app.js?v=2.0"></script>
+    <script src="assets/js/app.js?v=2.1"></script>
 </body>
 
 </html>
