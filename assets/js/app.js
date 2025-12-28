@@ -775,7 +775,7 @@ class FichajeApp {
         // Document Definition
         const docDefinition = {
             pageSize: 'A4',
-            pageMargins: [20, 10, 20, 10],
+            pageMargins: [20, 5, 20, 5],
             content: [
                 { text: 'Listado Resumen mensual del registro de jornada (completo)', style: 'mainHeader' },
                 {
@@ -805,7 +805,7 @@ class FichajeApp {
                         }
                     }
                 },
-                { text: '', margin: [0, 5] },
+                { text: '', margin: [0, 2] },
                 {
                     columns: [
                         { text: 'Firma de la empresa:', width: '50%', style: 'signatureLabel' },
@@ -818,7 +818,7 @@ class FichajeApp {
                         employeeSignature
                     ]
                 },
-                { text: '', margin: [0, -5] },
+                { text: '', margin: [0, 0] },
                 {
                     text: [
                         { text: 'En ' },
@@ -835,11 +835,12 @@ class FichajeApp {
                 },
                 {
                     text: 'Registro realizado en cumplimiento de la letra h) del artículo 1 del R.D.-Ley 16/2013, de 20 de diciembre por el que se modifica el artículo 12.5 del E.T., por el que se establece que "La jornada de los trabajadores a tiempo parcial se registrará día a día y se totalizará mensualmente, entregando copia al trabajador, junto con el recibo de salarios, del resumen de todas las horas realizadas en cada mes, tanto de las ordinarias como de las complementarias en sus distintas modalidades.\n\nEl empresario deberá conservar los resúmenes mensuales de los registros de jornada durante un periodo mínimo de cuatro años. El incumplimiento empresarial de estas obligaciones de registro tendrá por consecuencia jurídica la de que el contrato se presuma celebrado a jornada completa, salvo prueba en contrario que acredite el carácter parcial de los servicios.',
-                    style: 'legalText'
+                    style: 'legalText',
+                    margin: [0, 2, 0, 0]
                 }
             ],
             styles: {
-                mainHeader: { fontSize: 13, bold: true, alignment: 'center', margin: [0, 0, 0, 5] },
+                mainHeader: { fontSize: 13, bold: true, alignment: 'center', margin: [0, 0, 0, 2] },
                 headerTable: { margin: [0, 0, 0, 0] },
                 headerLabel: { fontSize: 8, bold: false, color: '#000000', fillColor: '#eeeeee' },
                 headerValue: { fontSize: 9, bold: true },
@@ -848,7 +849,7 @@ class FichajeApp {
                 tableCell: { fontSize: 8, margin: [0, 1, 0, 1] },
                 tableTotal: { fontSize: 9, bold: true, fillColor: '#eeeeee' },
                 signatureLabel: { fontSize: 10, bold: true },
-                legalText: { fontSize: 5.5, alignment: 'justify', color: '#444444' }
+                legalText: { fontSize: 5, alignment: 'justify', color: '#444444' }
             }
         };
 
