@@ -711,8 +711,19 @@ class FichajeApp {
         };
 
         try {
-            pdfMake.createPdf(docDefinition).download(`Resumen_Mensual_${monthNames[currentMonth]}_${currentYear}.pdf`);
-            this.showToast('PDF Generado y Descargado', 'success');
+            const pdf = pdfMake.createPdf(docDefinition);
+            const filename = `Resumen_Mensual_${monthNames[currentMonth]}_${currentYear}.pdf`;
+
+            // Mobile browsers often block async downloads. Use open() or standard download based on device.
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+            if (isMobile) {
+                pdf.open(); // Opens in new tab/window, better for mobile
+            } else {
+                pdf.download(filename);
+            }
+
+            this.showToast('PDF Generado', 'success');
         } catch (e) {
             console.error(e);
             this.showToast('Error generando PDF: ' + e.message, 'error');
@@ -806,14 +817,15 @@ class FichajeApp {
             return { ...f, entrySignature: entrySig, exitSignature: exitSig };
         }));
 
-        // Handle User Main Signature (e.g. from profile if saved, or empty)
-        // Currently we don't save main signature in profile, only valid for current session in signature tab.
-        // We can check if any fichaje has a signature and reuse it? No, that's forgery.
-        // We will leave it blank if they haven't signed a "main" signature in this session, 
-        // OR we could check if we saved it in user profile in DB (we don't currently).
-        // Let's just pass the user as is.
+        // Handle User Main Signature (Convert to DataURL if it's a URL/Path)
+        let mainSignatureData = user.mainSignature;
+        if (mainSignatureData && !mainSignatureData.startsWith('data:')) {
+            mainSignatureData = await toDataURL(mainSignatureData);
+        }
 
-        this._createAndDownloadPdf(user, processedFichajes);
+        const processedUser = { ...user, mainSignature: mainSignatureData };
+
+        this._createAndDownloadPdf(processedUser, processedFichajes);
     }
 
     async sharePDF() { this.generatePDF(); }
