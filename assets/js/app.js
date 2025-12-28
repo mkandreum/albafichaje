@@ -459,11 +459,13 @@ class FichajeApp {
 
         const getCoords = (e) => {
             const rect = canvas.getBoundingClientRect();
-            const scaleX = canvas.width / rect.width;
-            const scaleY = canvas.height / rect.height;
+            // Use CSS dimensions (rect.width/height) not canvas.width/height which are DPI-scaled
             const clientX = e.touches ? e.touches[0].clientX : e.clientX;
             const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-            return { x: (clientX - rect.left) * scaleX, y: (clientY - rect.top) * scaleY };
+            return {
+                x: clientX - rect.left,
+                y: clientY - rect.top
+            };
         };
 
         const startDrawing = (e) => { isDrawing = true; const coords = getCoords(e); lastX = coords.x; lastY = coords.y; };
