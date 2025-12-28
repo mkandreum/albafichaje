@@ -310,7 +310,8 @@ class FichajeApp {
 
         const result = await this.api.saveFichaje(fichaje);
         if (result.success) {
-            this.showToast(existingIndex !== -1 ? 'Fichaje actualizado' : 'Fichaje registrado');
+            const wasUpdate = existingIndex !== -1;
+            this.showToast(wasUpdate ? 'Fichaje actualizado' : 'Fichaje registrado');
             await this.loadData();
             this.loadTodayFichajes();
             this.clearForm();
@@ -641,7 +642,7 @@ class FichajeApp {
                 {},
                 { text: 'HORA SALIDA', style: 'tableHeader', colSpan: 2, alignment: 'center' },
                 {},
-                { text: 'HORAS\nTOTALES', style: 'tableHeader', alignment: 'center', margin: [0, 2, 0, 0] },
+                { text: 'HORAS TOTALES', style: 'tableHeader', alignment: 'center', margin: [0, 2, 0, 0] },
                 { text: 'FIRMAS ENTRADA', style: 'tableHeader', colSpan: 2, alignment: 'center' },
                 {},
                 { text: 'FIRMAS SALIDA', style: 'tableHeader', colSpan: 2, alignment: 'center' },
@@ -777,7 +778,7 @@ class FichajeApp {
                     style: 'mainGrid',
                     table: {
                         headerRows: 1,
-                        widths: ['8%', '11%', '11%', '11%', '11%', '10%', '9.5%', '9.5%', '9.5%', '9.5%'],
+                        widths: ['10%', '10.5%', '10.5%', '10.5%', '10.5%', '11%', '9.5%', '9.5%', '9.5%', '9.5%'],
                         body: gridBody
                     },
                     layout: {
