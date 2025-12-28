@@ -789,7 +789,7 @@ class FichajeApp {
                         vLineWidth: function (i, node) { return 0.5; },
                     }
                 },
-                { text: '', margin: [0, 2] },
+                { text: '', margin: [0, 5] },
                 {
                     style: 'mainGrid',
                     table: {
@@ -840,7 +840,7 @@ class FichajeApp {
                 }
             ],
             styles: {
-                mainHeader: { fontSize: 13, bold: true, alignment: 'center', margin: [0, 0, 0, 2] },
+                mainHeader: { fontSize: 13, bold: true, alignment: 'center', margin: [0, 0, 0, 8] },
                 headerTable: { margin: [0, 0, 0, 0] },
                 headerLabel: { fontSize: 8, bold: false, color: '#000000', fillColor: '#eeeeee' },
                 headerValue: { fontSize: 9, bold: true },
