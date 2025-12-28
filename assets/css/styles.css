@@ -973,7 +973,8 @@ body::before {
 
 .glass-signature-pad.mini {
     height: 60px;
-    /* Compact height */
+    background: #FFFFFF !important;
+    /* Force white background for mini pads */
 }
 
 /* Mobile optimizations for main signature pad */

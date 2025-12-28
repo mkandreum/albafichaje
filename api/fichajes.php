@@ -55,13 +55,27 @@ function handleSaveFichaje()
 {
     $input = getInput();
 
-    $userId = $input['userId'] ?? '';
-    $userName = $input['userName'] ?? '';
-    $date = $input['date'] ?? '';
-    $entryTime = $input['entryTime'] ?? '';
-    $exitTime = $input['exitTime'] ?? '';
+    // Sanitize inputs
+    $userId = filter_var($input['userId'] ?? '', FILTER_SANITIZE_FULL_SPECIAL_CHARS);
+    $userName = filter_var($input['userName'] ?? '', FILTER_SANITIZE_FULL_SPECIAL_CHARS);
+    $date = filter_var($input['date'] ?? '', FILTER_SANITIZE_FULL_SPECIAL_CHARS);
+    $entryTime = filter_var($input['entryTime'] ?? '', FILTER_SANITIZE_FULL_SPECIAL_CHARS);
+    $exitTime = filter_var($input['exitTime'] ?? '', FILTER_SANITIZE_FULL_SPECIAL_CHARS);
     $entrySignature = $input['entrySignature'] ?? null;
     $exitSignature = $input['exitSignature'] ?? null;
+
+    // Validate date format (YYYY-MM-DD)
+    if (!empty($date) && !preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
+        response(['success' => false, 'message' => 'Formato de fecha inválido'], 400);
+    }
+
+    // Validate time format (HH:MM)
+    if (!empty($entryTime) && !preg_match('/^\d{2}:\d{2}$/', $entryTime)) {
+        response(['success' => false, 'message' => 'Formato de hora de entrada inválido'], 400);
+    }
+    if (!empty($exitTime) && !preg_match('/^\d{2}:\d{2}$/', $exitTime)) {
+        response(['success' => false, 'message' => 'Formato de hora de salida inválido'], 400);
+    }
 
     // Validation
     if (empty($userId) || empty($date) || empty($entryTime)) {

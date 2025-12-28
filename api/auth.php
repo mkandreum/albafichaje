@@ -70,12 +70,33 @@ function handleChangePassword()
 
 function handleLogin()
 {
+    // Basic rate limiting - max 5 attempts per minute per IP
+    $ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+    $rateLimitKey = "login_attempts_$ip";
+
+    if (!isset($_SESSION[$rateLimitKey])) {
+        $_SESSION[$rateLimitKey] = ['count' => 0, 'time' => time()];
+    }
+
+    $rateLimit = $_SESSION[$rateLimitKey];
+    if (time() - $rateLimit['time'] > 60) {
+        // Reset after 1 minute
+        $_SESSION[$rateLimitKey] = ['count' => 0, 'time' => time()];
+    } elseif ($rateLimit['count'] >= 5) {
+        response(['success' => false, 'message' => 'Demasiados intentos. Espera 1 minuto.'], 429);
+    }
+
     $input = getInput();
-    $email = $input['email'] ?? '';
+    $email = filter_var($input['email'] ?? '', FILTER_SANITIZE_EMAIL);
     $password = $input['password'] ?? '';
 
     if (empty($email) || empty($password)) {
         response(['success' => false, 'message' => 'Email y contraseña requeridos'], 400);
+    }
+
+    // Validate email format
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        response(['success' => false, 'message' => 'Email inválido'], 400);
     }
 
     $users = readJson(USERS_FILE);
@@ -89,10 +110,12 @@ function handleLogin()
     }
 
     if (!$user) {
+        $_SESSION[$rateLimitKey]['count']++;
         response(['success' => false, 'message' => 'Usuario no encontrado'], 401);
     }
 
     if (!password_verify($password, $user['password'])) {
+        $_SESSION[$rateLimitKey]['count']++;
         response(['success' => false, 'message' => 'Contraseña incorrecta'], 401);
     }
 

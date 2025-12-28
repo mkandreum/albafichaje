@@ -12,17 +12,38 @@ define('USERS_FILE', DATA_DIR . 'users.json');
 define('FICHAJES_FILE', DATA_DIR . 'fichajes.json');
 define('SIGNATURES_DIR', DATA_DIR . 'signatures/');
 
-// CORS & Headers
+// CORS & Headers - Secure Configuration
 header('Content-Type: application/json');
-header('Access-Control-Allow-Origin: *'); // For dev only. In prod specific domain.
+
+// Secure CORS - Only allow same origin in production
+$allowedOrigins = ['https://fichaje.xyoncloud.win', 'https://albatecnica.sytes.net'];
+$origin = $_SERVER['HTTP_ORIGIN'] ?? '';
+
+if (in_array($origin, $allowedOrigins) || $_SERVER['SERVER_NAME'] === 'localhost') {
+    header("Access-Control-Allow-Origin: $origin");
+} else {
+    header('Access-Control-Allow-Origin: null');
+}
+
 header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type');
+header('Access-Control-Allow-Credentials: true');
+
+// Security Headers
+header('X-Content-Type-Options: nosniff');
+header('X-Frame-Options: SAMEORIGIN');
+header('X-XSS-Protection: 1; mode=block');
+header('Referrer-Policy: strict-origin-when-cross-origin');
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit(0);
 }
 
-// Session Start
+// Secure Session Configuration
+ini_set('session.cookie_httponly', 1);
+ini_set('session.cookie_secure', 1); // HTTPS only
+ini_set('session.cookie_samesite', 'Strict');
+ini_set('session.use_strict_mode', 1);
 session_start();
 
 // Helper: Read JSON
