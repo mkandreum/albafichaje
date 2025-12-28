@@ -219,9 +219,14 @@ body::before {
     /* Inner rim light */
     position: relative;
     overflow: hidden;
-    touch-action: none;
-    /* Prevent scroll while interacting */
 }
+
+.glass-signature-pad {
+    touch-action: none;
+    /* Only disable scroll here */
+}
+
+
 
 
 /* Specular Highlight (The "Glossy" top edge) */
