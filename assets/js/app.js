@@ -108,6 +108,9 @@ class FichajeApp {
         document.getElementById('generatePdfBtn').addEventListener('click', () => this.generatePDF());
         document.getElementById('sharePdfBtn').addEventListener('click', () => this.sharePDF());
 
+        document.getElementById('settingsForm').addEventListener('submit', (e) => this.handleSaveSettings(e));
+
+        // Tab switching
         document.querySelectorAll('.tab-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 this.switchTab(e.currentTarget.getAttribute('data-tab'));
@@ -265,6 +268,7 @@ class FichajeApp {
         if (tabName === 'fichaje') this.loadTodayFichajes();
         else if (tabName === 'historico') this.renderCalendar();
         else if (tabName === 'admin') this.loadAdminData();
+        else if (tabName === 'settings') this.loadSettingsForm();
     }
 
     registerFichaje() {
@@ -1052,5 +1056,33 @@ class FichajeApp {
     }
 
     async sharePDF() { this.generatePDF(); }
+
+    loadSettingsForm() {
+        document.getElementById('settingsNombre').value = this.currentUser.nombre || '';
+        document.getElementById('settingsApellidos').value = this.currentUser.apellidos || '';
+        document.getElementById('settingsDni').value = this.currentUser.dni || '';
+        document.getElementById('settingsAfiliacion').value = this.currentUser.afiliacion || '';
+        document.getElementById('settingsEmail').value = this.currentUser.email || '';
+    }
+
+    async handleSaveSettings(e) {
+        e.preventDefault();
+
+        const updatedData = {
+            nombre: document.getElementById('settingsNombre').value.trim(),
+            apellidos: document.getElementById('settingsApellidos').value.trim(),
+            dni: document.getElementById('settingsDni').value.trim(),
+            afiliacion: document.getElementById('settingsAfiliacion').value.trim()
+        };
+
+        const result = await this.api.request('auth.php?action=update_profile', 'POST', updatedData);
+
+        if (result.success) {
+            this.currentUser = { ...this.currentUser, ...updatedData };
+            this.showToast('✅ Datos actualizados correctamente', 'success');
+        } else {
+            this.showToast(`❌ Error: ${result.message}`, 'error');
+        }
+    }
 }
 document.addEventListener('DOMContentLoaded', () => { window.app = new FichajeApp(); });

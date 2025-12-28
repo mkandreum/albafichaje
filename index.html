@@ -336,6 +336,44 @@
                     <div class="employee-list" id="employeeList"></div>
                 </div>
             </div>
+
+            <!-- Settings Tab -->
+            <div id="settingsTab" class="tab-content">
+                <div class="glass-card content-card">
+                    <h2 class="section-title">Ajustes de Perfil</h2>
+
+                    <form id="settingsForm" class="form-container">
+                        <div class="form-group">
+                            <label for="settingsNombre">Nombre</label>
+                            <input type="text" id="settingsNombre" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="settingsApellidos">Apellidos</label>
+                            <input type="text" id="settingsApellidos" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="settingsDni">DNI</label>
+                            <input type="text" id="settingsDni" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="settingsAfiliacion">Nº Afiliación</label>
+                            <input type="text" id="settingsAfiliacion">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="settingsEmail">Email (no editable)</label>
+                            <input type="email" id="settingsEmail" disabled>
+                        </div>
+
+                        <button type="submit" class="glass-button primary">
+                            <span>Guardar Cambios</span>
+                        </button>
+                    </form>
+                </div>
+            </div>
         </main>
 
         <!-- Floating Tab Bar (Pure CSS Liquid Glass) -->
@@ -363,6 +401,14 @@
                         <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z" />
                     </svg>
                     <span>Firma</span>
+                </button>
+                <button class="tab-btn" data-tab="settings">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="3" />
+                        <path
+                            d="M12 1v6m0 6v6M5.64 5.64l4.24 4.24m4.24 4.24l4.24 4.24M1 12h6m6 0h6M5.64 18.36l4.24-4.24m4.24-4.24l4.24-4.24" />
+                    </svg>
+                    <span>Ajustes</span>
                 </button>
                 <button class="tab-btn" data-tab="admin" id="adminTabBtn" style="display: none;">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -395,7 +441,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.9/pdfmake.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.9/vfs_fonts.js"></script>
 
-    <script src="assets/js/app.js?v=4.2"></script>
+    <script src="assets/js/app.js?v=4.3"></script>
 </body>
 
 </html>

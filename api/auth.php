@@ -29,6 +29,9 @@ switch ($action) {
     case 'admin_delete_user':
         handleAdminDeleteUser();
         break;
+    case 'update_profile':
+        handleUpdateProfile();
+        break;
     default:
         response(['success' => false, 'message' => 'Acción no válida'], 400);
 }
@@ -156,6 +159,53 @@ function handleAdminDeleteUser()
     writeJson(FICHAJES_FILE, array_values($newFichajes));
 
     response(['success' => true, 'message' => 'Usuario eliminado']);
+}
+
+function handleUpdateProfile()
+{
+    // Check if user is logged in
+    if (!isset($_SESSION['user'])) {
+        response(['success' => false, 'message' => 'No autenticado'], 401);
+    }
+
+    $input = getInput();
+    $nombre = trim($input['nombre'] ?? '');
+    $apellidos = trim($input['apellidos'] ?? '');
+    $dni = trim($input['dni'] ?? '');
+    $afiliacion = trim($input['afiliacion'] ?? '');
+
+    // Validation
+    if (empty($nombre) || empty($apellidos) || empty($dni)) {
+        response(['success' => false, 'message' => 'Nombre, apellidos y DNI son requeridos'], 400);
+    }
+
+    $users = readJson(USERS_FILE);
+    $userId = $_SESSION['user']['id'];
+    $found = false;
+
+    foreach ($users as &$user) {
+        if ($user['id'] === $userId) {
+            $user['nombre'] = $nombre;
+            $user['apellidos'] = $apellidos;
+            $user['dni'] = $dni;
+            $user['afiliacion'] = $afiliacion;
+            $found = true;
+
+            // Update session
+            $_SESSION['user']['nombre'] = $nombre;
+            $_SESSION['user']['apellidos'] = $apellidos;
+            $_SESSION['user']['dni'] = $dni;
+            $_SESSION['user']['afiliacion'] = $afiliacion;
+            break;
+        }
+    }
+
+    if (!$found) {
+        response(['success' => false, 'message' => 'Usuario no encontrado'], 404);
+    }
+
+    writeJson(USERS_FILE, $users);
+    response(['success' => true, 'message' => 'Perfil actualizado']);
 }
 
 function handleLogin()
