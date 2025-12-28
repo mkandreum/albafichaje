@@ -26,6 +26,9 @@ switch ($action) {
     case 'admin_reset_password':
         handleAdminResetPassword();
         break;
+    case 'admin_delete_user':
+        handleAdminDeleteUser();
+        break;
     default:
         response(['success' => false, 'message' => 'Acción no válida'], 400);
 }
@@ -104,6 +107,55 @@ function handleAdminResetPassword()
     } else {
         response(['success' => false, 'message' => 'Usuario no encontrado'], 404);
     }
+}
+
+function handleAdminDeleteUser()
+{
+    // Check if user is admin
+    if (!isset($_SESSION['user']) || $_SESSION['user']['role'] !== 'admin') {
+        response(['success' => false, 'message' => 'Acceso denegado'], 403);
+    }
+
+    $input = getInput();
+    $userId = $input['userId'] ?? '';
+
+    if (empty($userId)) {
+        response(['success' => false, 'message' => 'ID de usuario requerido'], 400);
+    }
+
+    // Prevent admin from deleting themselves
+    if ($userId === $_SESSION['user']['id']) {
+        response(['success' => false, 'message' => 'No puedes eliminarte a ti mismo'], 400);
+    }
+
+    $users = readJson(USERS_FILE);
+    $found = false;
+    $newUsers = [];
+
+    foreach ($users as $user) {
+        if ($user['id'] === $userId) {
+            $found = true;
+            // Skip this user (delete)
+        } else {
+            $newUsers[] = $user;
+        }
+    }
+
+    if (!$found) {
+        response(['success' => false, 'message' => 'Usuario no encontrado'], 404);
+    }
+
+    // Delete user's fichajes
+    $fichajes = readJson(FICHAJES_FILE);
+    $newFichajes = array_filter($fichajes, function ($f) use ($userId) {
+        return $f['userId'] !== $userId;
+    });
+
+    // Save changes
+    writeJson(USERS_FILE, $newUsers);
+    writeJson(FICHAJES_FILE, array_values($newFichajes));
+
+    response(['success' => true, 'message' => 'Usuario eliminado']);
 }
 
 function handleLogin()

@@ -69,6 +69,11 @@ class FichajeApp {
             this.renderCalendar();
             this.loadTodayFichajes();
             this.updateTabIndicator();
+
+            // Set default date to today
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('fichajeDate').value = today;
+
             if (this.currentUser.role === 'admin') {
                 document.getElementById('adminTabBtn').style.display = 'flex';
             }
@@ -924,6 +929,9 @@ class FichajeApp {
                         <button class="download-btn" style="flex: 1; padding: 6px 8px; font-size: 11px;" onclick="window.app.resetUserPassword('${user.id}', '${user.email}')">
                             🔑 Reset
                         </button>
+                        <button class="download-btn" style="flex: 1; padding: 6px 8px; font-size: 11px; background: rgba(255,59,48,0.2);" onclick="window.app.deleteUser('${user.id}', '${user.email}')">
+                            🗑️ Borrar
+                        </button>
                         <button class="download-btn" style="flex: 1; padding: 6px 8px; font-size: 11px;" onclick="window.app.generatePDFForUser('${user.id}')">
                             📄 PDF
                         </button>
@@ -942,6 +950,24 @@ class FichajeApp {
         if (result.success) {
             this.showToast(`✅ Contraseña reseteada. Nueva contraseña: temp123456`, 'success');
             alert(`Contraseña temporal para ${userEmail}:\n\ntemp123456\n\nEl usuario deberá cambiarla al iniciar sesión.`);
+        } else {
+            this.showToast(`❌ Error: ${result.message}`, 'error');
+        }
+    }
+
+    async deleteUser(userId, userEmail) {
+        const confirmed = confirm(`⚠️ ¿BORRAR usuario ${userEmail}?\n\nEsta acción NO se puede deshacer.\nSe eliminarán todos sus fichajes.`);
+        if (!confirmed) return;
+
+        const doubleConfirm = confirm(`¿Estás SEGURO de borrar ${userEmail}?`);
+        if (!doubleConfirm) return;
+
+        const result = await this.api.request('auth.php?action=admin_delete_user', 'POST', { userId });
+
+        if (result.success) {
+            this.showToast(`✅ Usuario eliminado`, 'success');
+            await this.loadAdminData();
+            this.renderEmployeeList();
         } else {
             this.showToast(`❌ Error: ${result.message}`, 'error');
         }
