@@ -76,9 +76,12 @@ class FichajeApp {
 
             if (this.currentUser.role === 'admin') {
                 document.getElementById('adminTabBtn').style.display = 'flex';
-                // Hide settings tab for admins
+                // Remove settings tab button and content for admins
                 const settingsBtn = document.querySelector('.tab-btn[data-tab="settings"]');
-                if (settingsBtn) settingsBtn.style.display = 'none';
+                if (settingsBtn) settingsBtn.remove();
+
+                const settingsContent = document.getElementById('settingsTab');
+                if (settingsContent) settingsContent.remove();
             }
         } else {
             this.showScreen('login');
