@@ -193,6 +193,20 @@ function handleRegister()
         }
     }
 
+    // Special admin email - only allow once
+    $isAdminEmail = ($email === 'admin@fichaje.com');
+    if ($isAdminEmail) {
+        // Check if admin email already exists
+        foreach ($users as $u) {
+            if ($u['email'] === 'admin@fichaje.com') {
+                response(['success' => false, 'message' => 'El usuario administrador ya existe'], 400);
+            }
+        }
+    }
+
+    // Determine role
+    $role = $isAdminEmail ? 'admin' : 'employee';
+
     // Create new user
     $newUser = [
         'id' => uniqid(),
@@ -202,7 +216,7 @@ function handleRegister()
         'apellidos' => $apellidos,
         'dni' => $dni,
         'afiliacion' => $afiliacion,
-        'role' => 'employee', // Default role
+        'role' => $role,
         'createdAt' => date('c')
     ];
 
