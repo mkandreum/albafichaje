@@ -261,14 +261,14 @@ body::before {
     margin: 0 auto;
     padding: var(--padding-screen);
     padding-top: 50px;
-    padding-bottom: 50px;
-    padding-top: 50px;
-    padding-bottom: 50px;
-    height: 100%;
-    /* Fill the screen */
-    overflow-y: auto;
-    /* Allow independent scrolling */
-    -webkit-overflow-scrolling: touch;
+    padding-bottom: 80px;
+    /* Extra padding for bottom */
+    min-height: 100%;
+    /* Ensure it fills at least the screen */
+    height: auto;
+    /* Allow it to grow */
+    overflow: visible;
+    /* Let the parent .screen handle the scroll */
 }
 
 .login-card {
