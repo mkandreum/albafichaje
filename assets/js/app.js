@@ -765,11 +765,11 @@ class FichajeApp {
             // If mainSignature is a URL/Path, we rely on generatePDF pre-processing it to base64 before calling this.
             // OR if it's already base64 (from auth/template logic)
             // In existing app structure, generatePDF does the pre-processing.
-            employeeSignature = { image: user.mainSignature, width: 120, alignment: 'center' };
+            employeeSignature = { image: user.mainSignature, width: 130, alignment: 'center' };
         }
         else if (this.signaturePad && !this.isCanvasEmpty(this.signaturePad.canvas) && user.id === (this.currentUser.id || this.currentUser.email)) {
             // Fallback to active pad for self-download
-            employeeSignature = { image: this.signaturePad.canvas.toDataURL('image/png'), width: 120, alignment: 'center' };
+            employeeSignature = { image: this.signaturePad.canvas.toDataURL('image/png'), width: 130, alignment: 'center' };
         }
 
         // Document Definition
@@ -802,14 +802,10 @@ class FichajeApp {
                         vLineWidth: function (i, node) { return 0.5; },
                         fillColor: function (rowIndex, node, columnIndex) {
                             return (rowIndex < 1) ? '#eeeeee' : null;
-                        },
-                        paddingLeft: function (i, node) { return 1; },
-                        paddingRight: function (i, node) { return 1; },
-                        paddingTop: function (i, node) { return 1; },
-                        paddingBottom: function (i, node) { return 1; }
+                        }
                     }
                 },
-                { text: '', margin: [0, 2] },
+                { text: '', margin: [0, 5] },
                 {
                     columns: [
                         { text: 'Firma de la empresa:', width: '50%', style: 'signatureLabel' },
@@ -822,7 +818,7 @@ class FichajeApp {
                         employeeSignature
                     ]
                 },
-                { text: '', margin: [0, 2] },
+                { text: '', margin: [0, -5] },
                 {
                     text: [
                         { text: 'En ' },
@@ -843,16 +839,16 @@ class FichajeApp {
                 }
             ],
             styles: {
-                mainHeader: { fontSize: 12, bold: true, alignment: 'center', margin: [0, 0, 0, 5] },
+                mainHeader: { fontSize: 13, bold: true, alignment: 'center', margin: [0, 0, 0, 5] },
                 headerTable: { margin: [0, 0, 0, 0] },
                 headerLabel: { fontSize: 8, bold: false, color: '#000000', fillColor: '#eeeeee' },
                 headerValue: { fontSize: 9, bold: true },
                 tableHeader: { fontSize: 8, bold: true, color: 'black', fillColor: '#eeeeee' },
                 tableSubHeader: { fontSize: 8, bold: true, color: 'black', fillColor: '#eeeeee' },
-                tableCell: { fontSize: 7.5, margin: [0, 0, 0, 0] },
+                tableCell: { fontSize: 8, margin: [0, 1, 0, 1] },
                 tableTotal: { fontSize: 9, bold: true, fillColor: '#eeeeee' },
-                signatureLabel: { fontSize: 9, bold: true },
-                legalText: { fontSize: 5, alignment: 'justify', color: '#444444' }
+                signatureLabel: { fontSize: 10, bold: true },
+                legalText: { fontSize: 5.5, alignment: 'justify', color: '#444444' }
             }
         };
 
