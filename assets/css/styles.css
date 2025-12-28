@@ -210,7 +210,6 @@ body::before {
 
 .glass-card,
 .glass-time-picker,
-.glass-signature-pad,
 .app-header {
     background: var(--glass-panel);
     backdrop-filter: blur(var(--blur-base));
@@ -1205,11 +1204,14 @@ body::before {
 .employee-card {
     background: rgba(255, 255, 255, 0.03);
     border-radius: 18px;
-    padding: 20px;
-    margin-bottom: 15px;
+    padding: 12px 16px;
+    /* Reduced from 20px */
+    margin-bottom: 12px;
+    /* Reduced from 15px */
     display: flex;
     flex-direction: column;
-    gap: 15px;
+    gap: 10px;
+    /* Reduced from 15px */
 }
 
 .download-btn {

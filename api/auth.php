@@ -23,6 +23,9 @@ switch ($action) {
     case 'change_password':
         handleChangePassword();
         break;
+    case 'admin_reset_password':
+        handleAdminResetPassword();
+        break;
     default:
         response(['success' => false, 'message' => 'Acción no válida'], 400);
 }
@@ -63,6 +66,41 @@ function handleChangePassword()
     if ($found) {
         writeJson(USERS_FILE, $users);
         response(['success' => true, 'message' => 'Contraseña actualizada correcta', 'user' => $_SESSION['user']]);
+    } else {
+        response(['success' => false, 'message' => 'Usuario no encontrado'], 404);
+    }
+}
+
+function handleAdminResetPassword()
+{
+    // Check if user is admin
+    if (!isset($_SESSION['user']) || $_SESSION['user']['role'] !== 'admin') {
+        response(['success' => false, 'message' => 'Solo administradores pueden resetear contraseñas'], 403);
+    }
+
+    $input = getInput();
+    $userId = filter_var($input['userId'] ?? '', FILTER_SANITIZE_FULL_SPECIAL_CHARS);
+
+    if (empty($userId)) {
+        response(['success' => false, 'message' => 'ID de usuario requerido'], 400);
+    }
+
+    $users = readJson(USERS_FILE);
+    $found = false;
+
+    foreach ($users as &$user) {
+        if ($user['id'] === $userId) {
+            // Set temporary password and force change
+            $user['password'] = password_hash('temp123456', PASSWORD_DEFAULT);
+            $user['forcePasswordChange'] = true;
+            $found = true;
+            break;
+        }
+    }
+
+    if ($found) {
+        writeJson(USERS_FILE, $users);
+        response(['success' => true, 'message' => 'Contraseña reseteada a: temp123456']);
     } else {
         response(['success' => false, 'message' => 'Usuario no encontrado'], 404);
     }

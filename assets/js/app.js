@@ -834,17 +834,36 @@ class FichajeApp {
                             </p>
                         </div>
                     </div>
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 5px;">
+                    <div style="display: flex; gap: 8px; justify-content: space-between; align-items: center; margin-top: 5px;">
                         <span style="font-size: 13px; color: var(--text-secondary);">
                             Último fichaje: ${lastFichaje ? lastFichaje.date : 'Nunca'}
                         </span>
-                        <button class="download-btn" onclick="window.app.generatePDFForUser('${user.id}')">
-                            Descargar PDF
-                        </button>
+                        <div style="display: flex; gap: 8px;">
+                            <button class="download-btn" style="padding: 8px 12px; font-size: 12px;" onclick="window.app.resetUserPassword('${user.id}', '${user.email}')">
+                                🔑 Reset
+                            </button>
+                            <button class="download-btn" style="padding: 8px 12px; font-size: 12px;" onclick="window.app.generatePDFForUser('${user.id}')">
+                                📄 PDF
+                            </button>
+                        </div>
                     </div>
                 </div>
             `;
         }).join('');
+    }
+
+    async resetUserPassword(userId, userEmail) {
+        const confirmed = confirm(`¿Resetear contraseña de ${userEmail}?\n\nSe generará una contraseña temporal: temp123456`);
+        if (!confirmed) return;
+
+        const result = await this.api.request('auth.php?action=admin_reset_password', 'POST', { userId });
+
+        if (result.success) {
+            this.showToast(`✅ Contraseña reseteada. Nueva contraseña: temp123456`, 'success');
+            alert(`Contraseña temporal para ${userEmail}:\n\ntemp123456\n\nEl usuario deberá cambiarla al iniciar sesión.`);
+        } else {
+            this.showToast(`❌ Error: ${result.message}`, 'error');
+        }
     }
 
     generatePDFForUser(userId) {
