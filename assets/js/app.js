@@ -765,11 +765,11 @@ class FichajeApp {
             // If mainSignature is a URL/Path, we rely on generatePDF pre-processing it to base64 before calling this.
             // OR if it's already base64 (from auth/template logic)
             // In existing app structure, generatePDF does the pre-processing.
-            employeeSignature = { image: user.mainSignature, width: 150, alignment: 'center' };
+            employeeSignature = { image: user.mainSignature, width: 120, alignment: 'center' };
         }
         else if (this.signaturePad && !this.isCanvasEmpty(this.signaturePad.canvas) && user.id === (this.currentUser.id || this.currentUser.email)) {
             // Fallback to active pad for self-download
-            employeeSignature = { image: this.signaturePad.canvas.toDataURL('image/png'), width: 150, alignment: 'center' };
+            employeeSignature = { image: this.signaturePad.canvas.toDataURL('image/png'), width: 120, alignment: 'center' };
         }
 
         // Document Definition
@@ -789,7 +789,7 @@ class FichajeApp {
                         vLineWidth: function (i, node) { return 0.5; },
                     }
                 },
-                { text: '', margin: [0, 5] },
+                { text: '', margin: [0, 2] },
                 {
                     style: 'mainGrid',
                     table: {
@@ -802,10 +802,14 @@ class FichajeApp {
                         vLineWidth: function (i, node) { return 0.5; },
                         fillColor: function (rowIndex, node, columnIndex) {
                             return (rowIndex < 1) ? '#eeeeee' : null;
-                        }
+                        },
+                        paddingLeft: function (i, node) { return 1; },
+                        paddingRight: function (i, node) { return 1; },
+                        paddingTop: function (i, node) { return 1; },
+                        paddingBottom: function (i, node) { return 1; }
                     }
                 },
-                { text: '', margin: [0, 5] },
+                { text: '', margin: [0, 2] },
                 {
                     columns: [
                         { text: 'Firma de la empresa:', width: '50%', style: 'signatureLabel' },
@@ -818,7 +822,7 @@ class FichajeApp {
                         employeeSignature
                     ]
                 },
-                { text: '', margin: [0, 5] },
+                { text: '', margin: [0, 2] },
                 {
                     text: [
                         { text: 'En ' },
@@ -831,7 +835,7 @@ class FichajeApp {
                         { text: currentYear.toString(), decoration: 'underline' }
                     ],
                     alignment: 'right',
-                    margin: [0, 0, 40, 5]
+                    margin: [0, 0, 40, 2]
                 },
                 {
                     text: 'Registro realizado en cumplimiento de la letra h) del artículo 1 del R.D.-Ley 16/2013, de 20 de diciembre por el que se modifica el artículo 12.5 del E.T., por el que se establece que "La jornada de los trabajadores a tiempo parcial se registrará día a día y se totalizará mensualmente, entregando copia al trabajador, junto con el recibo de salarios, del resumen de todas las horas realizadas en cada mes, tanto de las ordinarias como de las complementarias en sus distintas modalidades.\n\nEl empresario deberá conservar los resúmenes mensuales de los registros de jornada durante un periodo mínimo de cuatro años. El incumplimiento empresarial de estas obligaciones de registro tendrá por consecuencia jurídica la de que el contrato se presuma celebrado a jornada completa, salvo prueba en contrario que acredite el carácter parcial de los servicios.',
@@ -839,15 +843,15 @@ class FichajeApp {
                 }
             ],
             styles: {
-                mainHeader: { fontSize: 14, bold: true, alignment: 'center', margin: [0, 0, 0, 10] },
+                mainHeader: { fontSize: 12, bold: true, alignment: 'center', margin: [0, 0, 0, 5] },
                 headerTable: { margin: [0, 0, 0, 0] },
                 headerLabel: { fontSize: 8, bold: false, color: '#000000', fillColor: '#eeeeee' },
                 headerValue: { fontSize: 9, bold: true },
                 tableHeader: { fontSize: 8, bold: true, color: 'black', fillColor: '#eeeeee' },
                 tableSubHeader: { fontSize: 8, bold: true, color: 'black', fillColor: '#eeeeee' },
-                tableCell: { fontSize: 8, margin: [0, 1, 0, 1] },
-                tableTotal: { fontSize: 10, bold: true, fillColor: '#eeeeee' },
-                signatureLabel: { fontSize: 10, bold: true },
+                tableCell: { fontSize: 7.5, margin: [0, 0, 0, 0] },
+                tableTotal: { fontSize: 9, bold: true, fillColor: '#eeeeee' },
+                signatureLabel: { fontSize: 9, bold: true },
                 legalText: { fontSize: 5, alignment: 'justify', color: '#444444' }
             }
         };
