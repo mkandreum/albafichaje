@@ -534,7 +534,7 @@ class FichajeApp {
         }
 
         const today = new Date();
-        const userId = this.currentUser.id || this.currentUser.email;
+
 
         for (let day = 1; day <= daysInMonth; day++) {
             const dayElement = document.createElement('div');
