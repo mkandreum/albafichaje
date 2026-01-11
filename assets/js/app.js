@@ -259,6 +259,10 @@ class FichajeApp {
             // Hide employee-only tabs for admin
             document.querySelector('[data-tab="fichaje"]').style.display = 'none';
             document.querySelector('[data-tab="firma"]').style.display = 'none';
+            document.querySelector('[data-tab="historico"]').style.display = 'none';
+            document.querySelector('[data-tab="dashboard"]').style.display = 'none';
+            document.querySelector('[data-tab="documentos"]').style.display = 'none';
+            document.getElementById('settingsTabBtn') && (document.getElementById('settingsTabBtn').style.display = 'none'); // Admin config is separate?
 
             // Show admin tabs
             document.getElementById('adminTabBtn').style.display = 'flex';
@@ -273,6 +277,10 @@ class FichajeApp {
             // Show all tabs for employees
             document.querySelector('[data-tab="fichaje"]').style.display = 'flex';
             document.querySelector('[data-tab="firma"]').style.display = 'flex';
+            document.querySelector('[data-tab="historico"]').style.display = 'flex';
+            document.querySelector('[data-tab="dashboard"]').style.display = 'flex';
+            document.querySelector('[data-tab="documentos"]').style.display = 'flex';
+            document.getElementById('settingsTabBtn') && (document.getElementById('settingsTabBtn').style.display = 'flex');
 
             // Hide admin tabs
             document.getElementById('adminTabBtn').style.display = 'none';
@@ -294,23 +302,57 @@ class FichajeApp {
         // Handle potential key mismatch or missing data
         const nombre = this.currentUser.nombre || this.currentUser.name || 'Usuario';
         const apellidos = this.currentUser.apellidos || '';
-
         const initials = ((nombre[0] || '?') + (apellidos[0] || '')).toUpperCase();
 
-        document.getElementById('userInitials').textContent = initials;
+        const avatarEl = document.querySelector('.user-avatar');
+        if (avatarEl) {
+            avatarEl.innerHTML = '';
+
+            if (this.currentUser.photo && this.currentUser.photo.startsWith('data:')) {
+                const img = document.createElement('img');
+                img.src = this.currentUser.photo;
+                img.style.width = '100%';
+                img.style.height = '100%';
+                img.style.objectFit = 'cover';
+                avatarEl.appendChild(img);
+            } else {
+                const span = document.createElement('span');
+                span.id = 'userInitials';
+                span.textContent = initials;
+                avatarEl.appendChild(span);
+            }
+        }
+
         document.getElementById('userName').textContent = `${nombre} ${apellidos}`;
         document.getElementById('userRole').textContent = this.currentUser.role === 'admin' ? 'Administrador' : 'Empleado';
     }
 
+    async loadDashboardData() {
+        if (!this.currentUser) return;
+
+        const result = await this.api.request('stats.php?action=dashboard');
+
+        if (result.success && result.stats) {
+            const s = result.stats;
+            if (document.getElementById('monthHours')) document.getElementById('monthHours').textContent = `${s.monthHours}h`;
+            if (document.getElementById('avgDaily')) document.getElementById('avgDaily').textContent = `${s.avgDaily}h`;
+            if (document.getElementById('daysWorked')) document.getElementById('daysWorked').textContent = s.daysWorked;
+        }
+    }
+
     switchTab(tabName) {
         document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-        document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+        const tabBtn = document.querySelector(`[data-tab="${tabName}"]`);
+        if (tabBtn) tabBtn.classList.add('active');
+
         document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-        document.getElementById(`${tabName}Tab`).classList.add('active');
+        const tabContent = document.getElementById(`${tabName}Tab`);
+        if (tabContent) tabContent.classList.add('active');
         this.updateTabIndicator();
         if (tabName === 'fichaje') this.loadTodayFichajes();
         else if (tabName === 'historico') this.renderCalendar();
         else if (tabName === 'admin') this.loadAdminData();
+        else if (tabName === 'dashboard') this.loadDashboardData();
         else if (tabName === 'settings') this.loadSettingsForm();
     }
 
@@ -1678,34 +1720,34 @@ class FichajeApp {
     }
 }
 
-    // Profile Photo Handling in Class
-    setupProfilePhoto() {
-        const input = document.getElementById('profilePhotoInput');
-        if(!input) return;
-        
-        input.addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if(file) {
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    const result = e.target.result;
-                    this.updateProfilePhotoUI(result);
-                    // Save to user profile (mock)
-                    this.currentUser.photo = result;
-                    localStorage.setItem('currentUser', JSON.stringify(this.currentUser));
-                    this.showToast('✅ Foto actualizada', 'success');
-                };
-                reader.readAsDataURL(file);
-            }
-        });
-    }
+// Profile Photo Handling in Class
+setupProfilePhoto() {
+    const input = document.getElementById('profilePhotoInput');
+    if (!input) return;
 
-    updateProfilePhotoUI(src) {
-        const img = document.getElementById('settingsProfileImg');
-        const placeholder = document.getElementById('settingsProfilePlaceholder');
-        if(img && placeholder) {
-            img.src = src;
-            img.style.display = 'block';
-            placeholder.style.display = 'none';
+    input.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const result = e.target.result;
+                this.updateProfilePhotoUI(result);
+                // Save to user profile (mock)
+                this.currentUser.photo = result;
+                localStorage.setItem('currentUser', JSON.stringify(this.currentUser));
+                this.showToast('✅ Foto actualizada', 'success');
+            };
+            reader.readAsDataURL(file);
         }
+    });
+}
+
+updateProfilePhotoUI(src) {
+    const img = document.getElementById('settingsProfileImg');
+    const placeholder = document.getElementById('settingsProfilePlaceholder');
+    if (img && placeholder) {
+        img.src = src;
+        img.style.display = 'block';
+        placeholder.style.display = 'none';
     }
+}
