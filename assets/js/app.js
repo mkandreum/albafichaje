@@ -1157,7 +1157,7 @@ class FichajeApp {
         const list = document.getElementById('employeeList');
 
         // Generate Table Rows (Desktop)
-        const tableRows = users.map(user => {
+        const tableRows = users.map((user, index) => {
             const lastFichaje = this.fichajes
                 .filter(f => f.userId === user.id)
                 .sort((a, b) => new Date(b.date) - new Date(a.date))[0];
@@ -1165,7 +1165,7 @@ class FichajeApp {
             const isSelected = this.selectedUsers && this.selectedUsers.has(user.id);
 
             return `
-                <tr>
+                <tr class="animate-stagger" style="animation-delay: ${index * 0.03}s">
                     <td>
                         <input type="checkbox" class="user-checkbox" data-user-id="${user.id}" ${isSelected ? 'checked' : ''}>
                     </td>
@@ -1207,7 +1207,7 @@ class FichajeApp {
         }).join('');
 
         // Generate Cards (Mobile)
-        const mobileCards = users.map(user => {
+        const mobileCards = users.map((user, index) => {
             const lastFichaje = this.fichajes
                 .filter(f => f.userId === user.id)
                 .sort((a, b) => new Date(b.date) - new Date(a.date))[0];
@@ -1215,7 +1215,7 @@ class FichajeApp {
             const isSelected = this.selectedUsers && this.selectedUsers.has(user.id);
 
             return `
-                <div class="employee-card">
+                <div class="employee-card animate-stagger" style="animation-delay: ${index * 0.05}s">
                     <div style="display: flex; gap: 12px; align-items: flex-start;">
                         <input type="checkbox" class="user-checkbox" data-user-id="${user.id}" ${isSelected ? 'checked' : ''} style="margin-top: 4px;">
                         <div class="user-avatar" style="width: 40px; height: 40px; font-size: 16px; flex-shrink: 0;">
