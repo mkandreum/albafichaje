@@ -85,9 +85,10 @@ class FichajeApp {
             this.loadTodayFichajes();
             this.updateTabIndicator();
 
+            this.updateTabIndicator();
+
             // Set default date to today
-            const today = new Date().toISOString().split('T')[0];
-            document.getElementById('fichajeDate').value = today;
+            this.updateCurrentDate();
 
             if (this.currentUser.role === 'admin') {
                 document.getElementById('adminTabBtn').style.display = 'flex';
@@ -359,6 +360,7 @@ class FichajeApp {
         }
 
         this.setupInactivityMonitor();
+        this.updateCurrentDate(); // Ensure date is always today when showing app
         setTimeout(() => this.updateTabIndicator(), 50);
     }
 
