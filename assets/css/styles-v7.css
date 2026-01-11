@@ -2185,7 +2185,7 @@ body::before {
     animation: scaleIn 0.2s ease-out;
 }
 
-.more-menu.show {
+.more-menu.active {
     display: flex;
 }
 
@@ -2421,51 +2421,44 @@ body::before {
         visibility: visible;
     }
 
-    /* Backdrop overlay */
-    .more-menu-backdrop {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0, 0, 0, 0.1);
-        z-index: 1999;
-        opacity: 0;
-        transition: opacity 0.3s;
-        pointer-events: none;
-    }
+    background: rgba(0, 0, 0, 0.1);
+    z-index: 1999;
+    opacity: 0;
+    transition: opacity 0.3s;
+    pointer-events: none;
+}
 
-    .more-menu.active+.more-menu-backdrop,
-    /* If sibling */
-    body.menu-open .more-menu-backdrop {
-        opacity: 1;
-        pointer-events: all;
-    }
+.more-menu.active+.more-menu-backdrop,
+/* If sibling */
+body.menu-open .more-menu-backdrop {
+    opacity: 1;
+    pointer-events: all;
+}
 
-    /* Grab handle */
-    .more-menu::before {
-        content: '';
-        width: 40px;
-        height: 5px;
-        background: rgba(255, 255, 255, 0.2);
-        border-radius: 3px;
-        position: absolute;
-        top: 10px;
-        left: 50%;
-        transform: translateX(-50%);
-    }
+/* Grab handle */
+.more-menu::before {
+    content: '';
+    width: 40px;
+    height: 5px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 3px;
+    position: absolute;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+}
 
-    .more-menu-item {
-        background: rgba(255, 255, 255, 0.08);
-        border-radius: 16px;
-        padding: 16px;
-        font-size: 17px;
-        color: white !important;
-        font-weight: 500;
-        display: flex;
-        align-items: center;
-        gap: 16px;
-    }
+.more-menu-item {
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    padding: 16px;
+    font-size: 17px;
+    color: white !important;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
 }
 
 /* v6.5 force deploy */

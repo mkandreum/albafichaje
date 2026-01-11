@@ -164,50 +164,32 @@ class FichajeApp {
         const moreMenu = document.getElementById('moreMenu');
         // More Menu Logic - Robust Implementation
         if (moreBtn && moreMenu) {
-            // Remove old listeners cloning node (optional but safe)
-            // const newMoreBtn = moreBtn.cloneNode(true);
-            // moreBtn.parentNode.replaceChild(newMoreBtn, moreBtn);
-
             moreBtn.onclick = (e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                console.log('More button clicked');
 
-                const isActive = moreMenu.classList.contains('active');
-
-                if (isActive) {
-                    moreMenu.classList.remove('active');
-                    backdrop.style.opacity = '0';
-                    backdrop.style.pointerEvents = 'none';
-                    document.body.classList.remove('menu-open');
+                const isOpening = !moreMenu.classList.contains('active');
+                if (isOpening) {
+                    this.openMoreMenu();
                 } else {
-                    moreMenu.classList.add('active');
-                    backdrop.style.opacity = '1';
-                    backdrop.style.pointerEvents = 'all';
-                    document.body.classList.add('menu-open');
+                    this.closeMoreMenu();
                 }
             };
 
             // Close when clicking backdrop
-            backdrop.onclick = () => {
-                moreMenu.classList.remove('active');
-                backdrop.style.opacity = '0';
-                backdrop.style.pointerEvents = 'none';
-                document.body.classList.remove('menu-open');
-            };
+            backdrop.onclick = () => this.closeMoreMenu();
 
             // Close when clicking items
-            moreMenu.querySelectorAll('button').forEach(btn => {
+            moreMenu.querySelectorAll('.more-menu-item').forEach(btn => {
                 btn.onclick = () => {
                     const tabId = btn.dataset.tab;
                     if (tabId) this.switchTab(tabId);
-
-                    moreMenu.classList.remove('active');
-                    backdrop.style.opacity = '0';
-                    backdrop.style.pointerEvents = 'none';
-                    document.body.classList.remove('menu-open');
+                    this.closeMoreMenu();
                 };
             });
+
+            // Prevent menu internal clicks from bubbling to backdrop
+            moreMenu.onclick = (e) => e.stopPropagation();
         }
 
         window.addEventListener('resize', () => this.updateTabIndicator());
@@ -230,6 +212,28 @@ class FichajeApp {
                 };
             }
         });
+    }
+
+    openMoreMenu() {
+        const moreMenu = document.getElementById('moreMenu');
+        const backdrop = document.querySelector('.more-menu-backdrop');
+        if (moreMenu && backdrop) {
+            moreMenu.classList.add('active');
+            backdrop.style.opacity = '1';
+            backdrop.style.pointerEvents = 'all';
+            document.body.classList.add('menu-open');
+        }
+    }
+
+    closeMoreMenu() {
+        const moreMenu = document.getElementById('moreMenu');
+        const backdrop = document.querySelector('.more-menu-backdrop');
+        if (moreMenu && backdrop) {
+            moreMenu.classList.remove('active');
+            backdrop.style.opacity = '0';
+            backdrop.style.pointerEvents = 'none';
+            document.body.classList.remove('menu-open');
+        }
     }
 
     updateTabIndicator() {
