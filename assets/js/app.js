@@ -1027,140 +1027,209 @@ class FichajeApp {
         document.getElementById('totalEmployees').textContent = totalEmployees;
         document.getElementById('todayFichajes').textContent = todayFichajesCount;
 
+        this.renderEmployeeList();
+        this.renderAdminCalendar();
+    }
 
-        // ==========================================
-        // ADMIN ENHANCEMENTS (Sort, Filter, Modal)
-        // ==========================================
+    renderEmployeeList() {
+        const container = document.getElementById('employeeList');
+        if (!container) return;
 
-        toggleSort(col) {
-            if (this.adminState.sortCol === col) {
-                this.adminState.sortAsc = !this.adminState.sortAsc;
+        let users = [...this.users];
+
+        // Filter
+        if (this.adminState.searchTerm) {
+            const term = this.adminState.searchTerm.toLowerCase();
+            users = users.filter(u =>
+                (u.nombre && u.nombre.toLowerCase().includes(term)) ||
+                (u.apellidos && u.apellidos.toLowerCase().includes(term)) ||
+                (u.dni && u.dni.toLowerCase().includes(term)) ||
+                (u.email && u.email.toLowerCase().includes(term))
+            );
+        }
+
+        // Sort
+        const { sortCol, sortAsc } = this.adminState;
+        users.sort((a, b) => {
+            let valA = a[sortCol] || '';
+            let valB = b[sortCol] || '';
+
+            if (sortCol === 'name') {
+                valA = `${a.nombre} ${a.apellidos}`.toLowerCase();
+                valB = `${b.nombre} ${b.apellidos}`.toLowerCase();
+            }
+
+            if (valA < valB) return sortAsc ? -1 : 1;
+            if (valA > valB) return sortAsc ? 1 : -1;
+            return 0;
+        });
+
+        // Render
+        container.innerHTML = users.map(user => {
+            const isSelected = this.adminState.selectedUsers.has(user.id);
+            const userFichajes = this.fichajes.filter(f => f.userId === user.id);
+            const lastFichaje = userFichajes.length > 0
+                ? userFichajes.sort((a, b) => new Date(b.date) - new Date(a.date))[0]
+                : null;
+
+            return `
+                <div class="employee-card glass-card ${isSelected ? 'selected' : ''}" onclick="window.app.toggleUserSelection('${user.id}')">
+                    <div class="employee-info">
+                        <div class="employee-avatar">
+                            ${user.nombre.charAt(0)}${user.apellidos.charAt(0)}
+                        </div>
+                        <div class="employee-details">
+                            <h3>${this.sanitizeInput(user.nombre)} ${this.sanitizeInput(user.apellidos)}</h3>
+                            <p>${this.sanitizeInput(user.email)}</p>
+                            <span class="role-badge ${user.role}">${user.role === 'admin' ? 'Administrador' : 'Empleado'}</span>
+                        </div>
+                    </div>
+                    <div class="employee-stats">
+                        <div class="stat">
+                            <span class="label">DNI</span>
+                            <span class="value">${this.sanitizeInput(user.dni || '-')}</span>
+                        </div>
+                        <div class="stat">
+                            <span class="label">Último Fichaje</span>
+                            <span class="value">${lastFichaje ? this.formatDate(lastFichaje.date) : '-'}</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }        // ==========================================
+    // ADMIN ENHANCEMENTS (Sort, Filter, Modal)
+    // ==========================================
+
+    toggleSort(col) {
+        if (this.adminState.sortCol === col) {
+            this.adminState.sortAsc = !this.adminState.sortAsc;
+        } else {
+            this.adminState.sortCol = col;
+            this.adminState.sortAsc = true;
+        }
+        this.loadAdminData();
+    }
+
+    handleSearch(e) {
+        this.adminState.searchTerm = e.target.value.toLowerCase();
+        this.loadAdminData();
+    }
+
+    toggleUserSelection(userId) {
+        if (this.adminState.selectedUsers.has(userId)) {
+            this.adminState.selectedUsers.delete(userId);
+        } else {
+            this.adminState.selectedUsers.add(userId);
+        }
+        this.updateBulkToolbar();
+    }
+
+    updateBulkToolbar() {
+        const toolbar = document.getElementById('bulkActionsToolbar');
+        const count = document.getElementById('selectedCount');
+        if (this.adminState.selectedUsers.size > 0) {
+            toolbar.style.display = 'flex';
+            count.textContent = `${this.adminState.selectedUsers.size} seleccionados`;
+        } else {
+            toolbar.style.display = 'none';
+        }
+    }
+
+    showCustomModal(title, message, onConfirm) {
+        const modal = document.getElementById('customModal');
+        document.getElementById('customModalTitle').textContent = title;
+        document.getElementById('customModalMessage').textContent = message;
+
+        const confirmBtn = document.getElementById('customModalConfirm');
+        const cancelBtn = document.getElementById('customModalCancel');
+
+        // Clone buttons to remove old listeners
+        const newConfirm = confirmBtn.cloneNode(true);
+        const newCancel = cancelBtn.cloneNode(true);
+        confirmBtn.parentNode.replaceChild(newConfirm, confirmBtn);
+        cancelBtn.parentNode.replaceChild(newCancel, cancelBtn);
+
+        newConfirm.onclick = () => {
+            onConfirm();
+            this.closeCustomModal();
+        };
+        newCancel.onclick = () => this.closeCustomModal();
+
+        modal.classList.add('show');
+    }
+
+    closeCustomModal() {
+        document.getElementById('customModal').classList.remove('show');
+    }
+
+    // Overwrite existing confirm for delete/reset
+    confirmAction(title, message, action) {
+        this.showCustomModal(title, message, action);
+    }
+
+    loadAdminData() {
+        if (!this.users || this.users.length === 0) return;
+
+        // Show Admin Controls
+        document.getElementById('adminControls').style.display = 'flex';
+        // Bind Search Listener once
+        const searchInput = document.getElementById('adminSearchInput');
+        if (!searchInput.dataset.bound) {
+            searchInput.addEventListener('input', (e) => this.handleSearch(e));
+            searchInput.dataset.bound = true;
+        }
+
+        // 1. FILTER
+        let processedUsers = this.users.filter(user => {
+            const term = this.adminState.searchTerm;
+            if (!term) return true;
+            return (
+                user.nombre.toLowerCase().includes(term) ||
+                user.apellidos.toLowerCase().includes(term) ||
+                user.email.toLowerCase().includes(term) ||
+                (user.dni && user.dni.toLowerCase().includes(term))
+            );
+        });
+
+        // 2. SORT
+        processedUsers.sort((a, b) => {
+            let valA, valB;
+
+            if (this.adminState.sortCol === 'name') {
+                valA = `${a.nombre} ${a.apellidos}`.toLowerCase();
+                valB = `${b.nombre} ${b.apellidos}`.toLowerCase();
+            } else if (this.adminState.sortCol === 'dni') {
+                valA = (a.dni || '').toLowerCase();
+                valB = (b.dni || '').toLowerCase();
             } else {
-                this.adminState.sortCol = col;
-                this.adminState.sortAsc = true;
-            }
-            this.loadAdminData();
-        }
-
-        handleSearch(e) {
-            this.adminState.searchTerm = e.target.value.toLowerCase();
-            this.loadAdminData();
-        }
-
-        toggleUserSelection(userId) {
-            if (this.adminState.selectedUsers.has(userId)) {
-                this.adminState.selectedUsers.delete(userId);
-            } else {
-                this.adminState.selectedUsers.add(userId);
-            }
-            this.updateBulkToolbar();
-        }
-
-        updateBulkToolbar() {
-            const toolbar = document.getElementById('bulkActionsToolbar');
-            const count = document.getElementById('selectedCount');
-            if (this.adminState.selectedUsers.size > 0) {
-                toolbar.style.display = 'flex';
-                count.textContent = `${this.adminState.selectedUsers.size} seleccionados`;
-            } else {
-                toolbar.style.display = 'none';
-            }
-        }
-
-        showCustomModal(title, message, onConfirm) {
-            const modal = document.getElementById('customModal');
-            document.getElementById('customModalTitle').textContent = title;
-            document.getElementById('customModalMessage').textContent = message;
-
-            const confirmBtn = document.getElementById('customModalConfirm');
-            const cancelBtn = document.getElementById('customModalCancel');
-
-            // Clone buttons to remove old listeners
-            const newConfirm = confirmBtn.cloneNode(true);
-            const newCancel = cancelBtn.cloneNode(true);
-            confirmBtn.parentNode.replaceChild(newConfirm, confirmBtn);
-            cancelBtn.parentNode.replaceChild(newCancel, cancelBtn);
-
-            newConfirm.onclick = () => {
-                onConfirm();
-                this.closeCustomModal();
-            };
-            newCancel.onclick = () => this.closeCustomModal();
-
-            modal.classList.add('show');
-        }
-
-        closeCustomModal() {
-            document.getElementById('customModal').classList.remove('show');
-        }
-
-        // Overwrite existing confirm for delete/reset
-        confirmAction(title, message, action) {
-            this.showCustomModal(title, message, action);
-        }
-
-        loadAdminData() {
-            if (!this.users || this.users.length === 0) return;
-
-            // Show Admin Controls
-            document.getElementById('adminControls').style.display = 'flex';
-            // Bind Search Listener once
-            const searchInput = document.getElementById('adminSearchInput');
-            if (!searchInput.dataset.bound) {
-                searchInput.addEventListener('input', (e) => this.handleSearch(e));
-                searchInput.dataset.bound = true;
+                // Date (default)
+                const lastA = this.fichajes.filter(f => f.userId === a.id).sort((x, y) => new Date(y.date) - new Date(x.date))[0];
+                const lastB = this.fichajes.filter(f => f.userId === b.id).sort((x, y) => new Date(y.date) - new Date(x.date))[0];
+                valA = lastA ? new Date(lastA.date).getTime() : 0;
+                valB = lastB ? new Date(lastB.date).getTime() : 0;
             }
 
-            // 1. FILTER
-            let processedUsers = this.users.filter(user => {
-                const term = this.adminState.searchTerm;
-                if (!term) return true;
-                return (
-                    user.nombre.toLowerCase().includes(term) ||
-                    user.apellidos.toLowerCase().includes(term) ||
-                    user.email.toLowerCase().includes(term) ||
-                    (user.dni && user.dni.toLowerCase().includes(term))
-                );
-            });
+            if (valA < valB) return this.adminState.sortAsc ? -1 : 1;
+            if (valA > valB) return this.adminState.sortAsc ? 1 : -1;
+            return 0;
+        });
 
-            // 2. SORT
-            processedUsers.sort((a, b) => {
-                let valA, valB;
+        // 3. RENDER
+        const list = document.getElementById('employeeList');
+        const totalStat = document.getElementById('totalEmployees');
+        if (totalStat) totalStat.textContent = this.users.length;
 
-                if (this.adminState.sortCol === 'name') {
-                    valA = `${a.nombre} ${a.apellidos}`.toLowerCase();
-                    valB = `${b.nombre} ${b.apellidos}`.toLowerCase();
-                } else if (this.adminState.sortCol === 'dni') {
-                    valA = (a.dni || '').toLowerCase();
-                    valB = (b.dni || '').toLowerCase();
-                } else {
-                    // Date (default)
-                    const lastA = this.fichajes.filter(f => f.userId === a.id).sort((x, y) => new Date(y.date) - new Date(x.date))[0];
-                    const lastB = this.fichajes.filter(f => f.userId === b.id).sort((x, y) => new Date(y.date) - new Date(x.date))[0];
-                    valA = lastA ? new Date(lastA.date).getTime() : 0;
-                    valB = lastB ? new Date(lastB.date).getTime() : 0;
-                }
+        // Sorting Indicators
+        const getArrow = (col) => this.adminState.sortCol === col ? (this.adminState.sortAsc ? ' ↑' : ' ↓') : '';
 
-                if (valA < valB) return this.adminState.sortAsc ? -1 : 1;
-                if (valA > valB) return this.adminState.sortAsc ? 1 : -1;
-                return 0;
-            });
+        // Generate Table Rows (Desktop)
+        const tableRows = processedUsers.map(user => {
+            const lastFichaje = this.fichajes
+                .filter(f => f.userId === user.id)
+                .sort((a, b) => new Date(b.date) - new Date(a.date))[0];
 
-            // 3. RENDER
-            const list = document.getElementById('employeeList');
-            const totalStat = document.getElementById('totalEmployees');
-            if (totalStat) totalStat.textContent = this.users.length;
-
-            // Sorting Indicators
-            const getArrow = (col) => this.adminState.sortCol === col ? (this.adminState.sortAsc ? ' ↑' : ' ↓') : '';
-
-            // Generate Table Rows (Desktop)
-            const tableRows = processedUsers.map(user => {
-                const lastFichaje = this.fichajes
-                    .filter(f => f.userId === user.id)
-                    .sort((a, b) => new Date(b.date) - new Date(a.date))[0];
-
-                return `
+            return `
                 <tr>
                     <td>
                         <div class="table-user-info">
@@ -1203,15 +1272,15 @@ class FichajeApp {
                     </td>
                 </tr>
             `;
-            }).join('');
+        }).join('');
 
-            // Generate Cards (Mobile)
-            const mobileCards = processedUsers.map(user => {
-                const lastFichaje = this.fichajes
-                    .filter(f => f.userId === user.id)
-                    .sort((a, b) => new Date(b.date) - new Date(a.date))[0];
+        // Generate Cards (Mobile)
+        const mobileCards = processedUsers.map(user => {
+            const lastFichaje = this.fichajes
+                .filter(f => f.userId === user.id)
+                .sort((a, b) => new Date(b.date) - new Date(a.date))[0];
 
-                return `
+            return `
                 <div class="employee-card">
                     <div style="display: flex; gap: 10px; align-items: flex-start;">
                         <input type="checkbox" 
@@ -1251,11 +1320,11 @@ class FichajeApp {
                     </div>
                 </div>
             `;
-            }).join('');
+        }).join('');
 
-            // Combine Views
-            list.className = 'employee-list animate-stagger';
-            list.innerHTML = `
+        // Combine Views
+        list.className = 'employee-list animate-stagger';
+        list.innerHTML = `
             <!-- Desktop Table View -->
             <div class="desktop-only">
                 <div class="admin-table-container">
@@ -1281,221 +1350,221 @@ class FichajeApp {
                 ${mobileCards}
             </div>
         `;
-        }
+    }
 
     async resetUserPassword(userId, userEmail) {
-            this.confirmAction('Resetear Contraseña', `¿Resetear contraseña de ${userEmail}?\n\nSe generará una contraseña temporal: temp123456`, async () => {
-                const result = await this.api.request('auth.php?action=admin_reset_password', 'POST', { userId });
-                if (result.success) {
-                    this.showToast(`✅ Contraseña reseteada`, 'success');
-                    this.showCustomModal('Contraseña Temporal', `La contraseña temporal para ${userEmail} es:\n\ntemp123456`, () => { });
-                } else {
-                    this.showToast(`❌ Error: ${result.message}`, 'error');
-                }
-            });
-        }
-
-    async deleteUser(userId, userEmail) {
-            this.confirmAction('Borrar Usuario', `⚠️ ¿BORRO DE VERDAD a ${userEmail}?\n\nEsta acción eliminará todos sus datos y fichajes para siempre.`, async () => {
-                const result = await this.api.request('auth.php?action=admin_delete_user', 'POST', { userId });
-                if (result.success) {
-                    this.showToast(`✅ Usuario eliminado`, 'success');
-                    this.users = this.users.filter(u => u.id !== userId);
-                    this.loadAdminData();
-                } else {
-                    this.showToast(`❌ Error: ${result.message} `, 'error');
-                }
-            });
-        }
-
-        generatePDFForUser(userId) {
-            const user = this.users.find(u => u.id === userId);
-            if (!user) return;
-            const userFichajes = this.fichajes.filter(f => f.userId === userId);
-            this._prepareAndDownloadPdf(user, userFichajes);
-        }
-
-    async generateAllPDFsForUser(userId, userName) {
-            const user = this.users.find(u => u.id === userId);
-            if (!user) return;
-            const userFichajes = this.fichajes.filter(f => f.userId === userId);
-
-            if (userFichajes.length === 0) {
-                this.showToast('❌ No hay fichajes', 'error');
-                return;
-            }
-
-            const monthsSet = new Set();
-            userFichajes.forEach(f => {
-                const date = new Date(f.date);
-                const monthKey = `${date.getFullYear()} -${(date.getMonth() + 1).toString().padStart(2, '0')} `;
-                monthsSet.add(monthKey);
-            });
-
-            const months = Array.from(monthsSet).sort();
-            this.showToast(`Generando ${months.length} PDFs...`, 'info');
-
-            for (const monthKey of months) {
-                const [year, month] = monthKey.split('-');
-                const monthFichajes = userFichajes.filter(f => {
-                    const d = new Date(f.date);
-                    return d.getFullYear() === parseInt(year) && d.getMonth() === parseInt(month) - 1;
-                });
-
-                const originalMonth = this.currentMonth;
-                this.currentMonth = new Date(parseInt(year), parseInt(month) - 1, 1);
-                await this._prepareAndDownloadPdf(user, monthFichajes);
-                this.currentMonth = originalMonth;
-                await new Promise(r => setTimeout(r, 500));
-            }
-            this.showToast('✅ Completado', 'success');
-        }
-
-    async _prepareAndDownloadPdf(user, userFichajes) {
-            this.showToast(`Generando PDF para ${user.nombre}...`);
-
-            const toDataURL = url => {
-                const absoluteUrl = url.startsWith('http') ? url : `${window.location.origin}/${url}`;
-                return fetch(absoluteUrl)
-                    .then(response => {
-                        if (!response.ok) throw new Error('Failed to fetch');
-                        return response.blob();
-                    })
-                    .then(blob => new Promise((resolve, reject) => {
-                        const reader = new FileReader();
-                        reader.onloadend = () => resolve(reader.result);
-                        reader.onerror = reject;
-                        reader.readAsDataURL(blob);
-                    }))
-                    .catch((err) => null);
-            };
-
-            const processedFichajes = await Promise.all(userFichajes.map(async f => {
-                let entrySig = f.entrySignature && !f.entrySignature.startsWith('data:') ? await toDataURL(f.entrySignature) : f.entrySignature;
-                let exitSig = f.exitSignature && !f.exitSignature.startsWith('data:') ? await toDataURL(f.exitSignature) : f.exitSignature;
-                return { ...f, entrySignature: entrySig, exitSignature: exitSig };
-            }));
-
-            let mainSignatureData = user.mainSignature;
-            if (!mainSignatureData && userFichajes.some(f => f.exitSignature)) {
-                mainSignatureData = userFichajes.filter(f => f.exitSignature).sort((a, b) => new Date(b.date) - new Date(a.date))[0].exitSignature;
-            }
-            if (mainSignatureData && !mainSignatureData.startsWith('data:')) {
-                mainSignatureData = await toDataURL(mainSignatureData);
-            }
-
-            this._createAndDownloadPdf({ ...user, mainSignature: mainSignatureData }, processedFichajes);
-        }
-
-    async sharePDF() { this.generatePDF(); }
-
-        loadSettingsForm() {
-            document.getElementById('settingsNombre').value = this.currentUser.nombre || '';
-            document.getElementById('settingsApellidos').value = this.currentUser.apellidos || '';
-            document.getElementById('settingsDni').value = this.currentUser.dni || '';
-            document.getElementById('settingsAfiliacion').value = this.currentUser.afiliacion || '';
-            document.getElementById('settingsEmail').value = this.currentUser.email || '';
-        }
-
-    async handleSaveSettings(e) {
-            e.preventDefault();
-            const updatedData = {
-                nombre: document.getElementById('settingsNombre').value.trim(),
-                apellidos: document.getElementById('settingsApellidos').value.trim(),
-                dni: document.getElementById('settingsDni').value.trim(),
-                afiliacion: document.getElementById('settingsAfiliacion').value.trim()
-            };
-            const result = await this.api.request('auth.php?action=update_profile', 'POST', updatedData);
+        this.confirmAction('Resetear Contraseña', `¿Resetear contraseña de ${userEmail}?\n\nSe generará una contraseña temporal: temp123456`, async () => {
+            const result = await this.api.request('auth.php?action=admin_reset_password', 'POST', { userId });
             if (result.success) {
-                this.currentUser = { ...this.currentUser, ...updatedData };
-                this.showToast('✅ Datos actualizados', 'success');
+                this.showToast(`✅ Contraseña reseteada`, 'success');
+                this.showCustomModal('Contraseña Temporal', `La contraseña temporal para ${userEmail} es:\n\ntemp123456`, () => { });
             } else {
                 this.showToast(`❌ Error: ${result.message}`, 'error');
             }
+        });
+    }
+
+    async deleteUser(userId, userEmail) {
+        this.confirmAction('Borrar Usuario', `⚠️ ¿BORRO DE VERDAD a ${userEmail}?\n\nEsta acción eliminará todos sus datos y fichajes para siempre.`, async () => {
+            const result = await this.api.request('auth.php?action=admin_delete_user', 'POST', { userId });
+            if (result.success) {
+                this.showToast(`✅ Usuario eliminado`, 'success');
+                this.users = this.users.filter(u => u.id !== userId);
+                this.loadAdminData();
+            } else {
+                this.showToast(`❌ Error: ${result.message} `, 'error');
+            }
+        });
+    }
+
+    generatePDFForUser(userId) {
+        const user = this.users.find(u => u.id === userId);
+        if (!user) return;
+        const userFichajes = this.fichajes.filter(f => f.userId === userId);
+        this._prepareAndDownloadPdf(user, userFichajes);
+    }
+
+    async generateAllPDFsForUser(userId, userName) {
+        const user = this.users.find(u => u.id === userId);
+        if (!user) return;
+        const userFichajes = this.fichajes.filter(f => f.userId === userId);
+
+        if (userFichajes.length === 0) {
+            this.showToast('❌ No hay fichajes', 'error');
+            return;
         }
 
-        // Admin Calendar Methods
-        changeAdminMonth(direction) {
-            if (!this.adminCalendarMonth) {
-                this.adminCalendarMonth = new Date();
-            }
-            this.adminCalendarMonth = new Date(
-                this.adminCalendarMonth.getFullYear(),
-                this.adminCalendarMonth.getMonth() + direction,
-                1
-            );
-            this.renderAdminCalendar();
-        }
+        const monthsSet = new Set();
+        userFichajes.forEach(f => {
+            const date = new Date(f.date);
+            const monthKey = `${date.getFullYear()} -${(date.getMonth() + 1).toString().padStart(2, '0')} `;
+            monthsSet.add(monthKey);
+        });
 
-        renderAdminCalendar() {
-            const grid = document.getElementById('adminCalendarGrid');
-            if (!grid) return; // Not on admin tab or desktop
+        const months = Array.from(monthsSet).sort();
+        this.showToast(`Generando ${months.length} PDFs...`, 'info');
 
-            if (!this.adminCalendarMonth) {
-                this.adminCalendarMonth = new Date();
-            }
-
-            const year = this.adminCalendarMonth.getFullYear();
-            const month = this.adminCalendarMonth.getMonth();
-            const monthNames = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
-
-            const monthTitle = document.getElementById('adminCalendarMonth');
-            if (monthTitle) {
-                monthTitle.textContent = `${monthNames[month]} ${year}`;
-            }
-
-            const firstDay = new Date(year, month, 1);
-            const lastDay = new Date(year, month + 1, 0);
-            const startingDayOfWeek = firstDay.getDay() === 0 ? 6 : firstDay.getDay() - 1;
-            const daysInMonth = lastDay.getDate();
-
-            grid.innerHTML = '';
-
-            // Day headers
-            const dayHeaders = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
-            dayHeaders.forEach(day => {
-                const header = document.createElement('div');
-                header.className = 'calendar-day header';
-                header.textContent = day;
-                grid.appendChild(header);
+        for (const monthKey of months) {
+            const [year, month] = monthKey.split('-');
+            const monthFichajes = userFichajes.filter(f => {
+                const d = new Date(f.date);
+                return d.getFullYear() === parseInt(year) && d.getMonth() === parseInt(month) - 1;
             });
 
-            // Empty days before month starts
-            for (let i = 0; i < startingDayOfWeek; i++) {
-                const emptyDay = document.createElement('div');
-                emptyDay.className = 'calendar-day other-month';
-                grid.appendChild(emptyDay);
-            }
+            const originalMonth = this.currentMonth;
+            this.currentMonth = new Date(parseInt(year), parseInt(month) - 1, 1);
+            await this._prepareAndDownloadPdf(user, monthFichajes);
+            this.currentMonth = originalMonth;
+            await new Promise(r => setTimeout(r, 500));
+        }
+        this.showToast('✅ Completado', 'success');
+    }
 
-            const today = new Date();
+    async _prepareAndDownloadPdf(user, userFichajes) {
+        this.showToast(`Generando PDF para ${user.nombre}...`);
 
-            // Render days
-            for (let day = 1; day <= daysInMonth; day++) {
-                const dayElement = document.createElement('div');
-                dayElement.className = 'calendar-day';
-                const currentDate = new Date(year, month, day);
-                const dateString = currentDate.toISOString().split('T')[0];
+        const toDataURL = url => {
+            const absoluteUrl = url.startsWith('http') ? url : `${window.location.origin}/${url}`;
+            return fetch(absoluteUrl)
+                .then(response => {
+                    if (!response.ok) throw new Error('Failed to fetch');
+                    return response.blob();
+                })
+                .then(blob => new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onloadend = () => resolve(reader.result);
+                    reader.onerror = reject;
+                    reader.readAsDataURL(blob);
+                }))
+                .catch((err) => null);
+        };
 
-                if (dateString === today.toISOString().split('T')[0]) {
-                    dayElement.classList.add('today');
-                }
-                if (currentDate > today) {
-                    dayElement.classList.add('future');
-                }
+        const processedFichajes = await Promise.all(userFichajes.map(async f => {
+            let entrySig = f.entrySignature && !f.entrySignature.startsWith('data:') ? await toDataURL(f.entrySignature) : f.entrySignature;
+            let exitSig = f.exitSignature && !f.exitSignature.startsWith('data:') ? await toDataURL(f.exitSignature) : f.exitSignature;
+            return { ...f, entrySignature: entrySig, exitSignature: exitSig };
+        }));
 
-                // Check if any user has fichajes for this day
-                const hasFichajes = this.fichajes && this.fichajes.some(f => f.date === dateString);
-                const isPast = currentDate < today && dateString !== today.toISOString().split('T')[0];
+        let mainSignatureData = user.mainSignature;
+        if (!mainSignatureData && userFichajes.some(f => f.exitSignature)) {
+            mainSignatureData = userFichajes.filter(f => f.exitSignature).sort((a, b) => new Date(b.date) - new Date(a.date))[0].exitSignature;
+        }
+        if (mainSignatureData && !mainSignatureData.startsWith('data:')) {
+            mainSignatureData = await toDataURL(mainSignatureData);
+        }
 
-                if (isPast && !hasFichajes) {
-                    dayElement.classList.add('missing');
-                } else if (hasFichajes) {
-                    dayElement.classList.add('complete');
-                }
+        this._createAndDownloadPdf({ ...user, mainSignature: mainSignatureData }, processedFichajes);
+    }
 
-                dayElement.innerHTML = `<span class="day-number">${day}</span>${(hasFichajes || isPast) ? '<span class="day-indicator"></span>' : ''}`;
-                grid.appendChild(dayElement);
-            }
+    async sharePDF() { this.generatePDF(); }
+
+    loadSettingsForm() {
+        document.getElementById('settingsNombre').value = this.currentUser.nombre || '';
+        document.getElementById('settingsApellidos').value = this.currentUser.apellidos || '';
+        document.getElementById('settingsDni').value = this.currentUser.dni || '';
+        document.getElementById('settingsAfiliacion').value = this.currentUser.afiliacion || '';
+        document.getElementById('settingsEmail').value = this.currentUser.email || '';
+    }
+
+    async handleSaveSettings(e) {
+        e.preventDefault();
+        const updatedData = {
+            nombre: document.getElementById('settingsNombre').value.trim(),
+            apellidos: document.getElementById('settingsApellidos').value.trim(),
+            dni: document.getElementById('settingsDni').value.trim(),
+            afiliacion: document.getElementById('settingsAfiliacion').value.trim()
+        };
+        const result = await this.api.request('auth.php?action=update_profile', 'POST', updatedData);
+        if (result.success) {
+            this.currentUser = { ...this.currentUser, ...updatedData };
+            this.showToast('✅ Datos actualizados', 'success');
+        } else {
+            this.showToast(`❌ Error: ${result.message}`, 'error');
         }
     }
+
+    // Admin Calendar Methods
+    changeAdminMonth(direction) {
+        if (!this.adminCalendarMonth) {
+            this.adminCalendarMonth = new Date();
+        }
+        this.adminCalendarMonth = new Date(
+            this.adminCalendarMonth.getFullYear(),
+            this.adminCalendarMonth.getMonth() + direction,
+            1
+        );
+        this.renderAdminCalendar();
+    }
+
+    renderAdminCalendar() {
+        const grid = document.getElementById('adminCalendarGrid');
+        if (!grid) return; // Not on admin tab or desktop
+
+        if (!this.adminCalendarMonth) {
+            this.adminCalendarMonth = new Date();
+        }
+
+        const year = this.adminCalendarMonth.getFullYear();
+        const month = this.adminCalendarMonth.getMonth();
+        const monthNames = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+
+        const monthTitle = document.getElementById('adminCalendarMonth');
+        if (monthTitle) {
+            monthTitle.textContent = `${monthNames[month]} ${year}`;
+        }
+
+        const firstDay = new Date(year, month, 1);
+        const lastDay = new Date(year, month + 1, 0);
+        const startingDayOfWeek = firstDay.getDay() === 0 ? 6 : firstDay.getDay() - 1;
+        const daysInMonth = lastDay.getDate();
+
+        grid.innerHTML = '';
+
+        // Day headers
+        const dayHeaders = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
+        dayHeaders.forEach(day => {
+            const header = document.createElement('div');
+            header.className = 'calendar-day header';
+            header.textContent = day;
+            grid.appendChild(header);
+        });
+
+        // Empty days before month starts
+        for (let i = 0; i < startingDayOfWeek; i++) {
+            const emptyDay = document.createElement('div');
+            emptyDay.className = 'calendar-day other-month';
+            grid.appendChild(emptyDay);
+        }
+
+        const today = new Date();
+
+        // Render days
+        for (let day = 1; day <= daysInMonth; day++) {
+            const dayElement = document.createElement('div');
+            dayElement.className = 'calendar-day';
+            const currentDate = new Date(year, month, day);
+            const dateString = currentDate.toISOString().split('T')[0];
+
+            if (dateString === today.toISOString().split('T')[0]) {
+                dayElement.classList.add('today');
+            }
+            if (currentDate > today) {
+                dayElement.classList.add('future');
+            }
+
+            // Check if any user has fichajes for this day
+            const hasFichajes = this.fichajes && this.fichajes.some(f => f.date === dateString);
+            const isPast = currentDate < today && dateString !== today.toISOString().split('T')[0];
+
+            if (isPast && !hasFichajes) {
+                dayElement.classList.add('missing');
+            } else if (hasFichajes) {
+                dayElement.classList.add('complete');
+            }
+
+            dayElement.innerHTML = `<span class="day-number">${day}</span>${(hasFichajes || isPast) ? '<span class="day-indicator"></span>' : ''}`;
+            grid.appendChild(dayElement);
+        }
+    }
+}
 document.addEventListener('DOMContentLoaded', () => { window.app = new FichajeApp(); });
