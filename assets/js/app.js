@@ -131,6 +131,14 @@ class FichajeApp {
 
         document.getElementById('settingsForm').addEventListener('submit', (e) => this.handleSaveSettings(e));
 
+        // Create backdrop for mobile menu
+        let backdrop = document.querySelector('.more-menu-backdrop');
+        if (!backdrop) {
+            backdrop = document.createElement('div');
+            backdrop.className = 'more-menu-backdrop';
+            document.body.appendChild(backdrop);
+        }
+
         // Tab switching (Bar and Menu)
         document.querySelectorAll('.tab-btn, .more-menu-item').forEach(btn => {
             if (!btn.classList.contains('more-trigger')) {
@@ -138,25 +146,43 @@ class FichajeApp {
                     const tab = e.currentTarget.getAttribute('data-tab');
                     if (tab) {
                         this.switchTab(tab);
+                        // Close menu if open
                         const menu = document.getElementById('moreMenu');
-                        if (menu) menu.classList.remove('show');
+                        if (menu && menu.classList.contains('active')) {
+                            menu.classList.remove('active');
+                            backdrop.style.opacity = '0';
+                            backdrop.style.pointerEvents = 'none';
+                        }
                     }
                 });
             }
         });
 
-        // More Menu Logic
+        // More Menu Logic (Bottom Sheet)
         const moreBtn = document.getElementById('moreTabBtn');
         const moreMenu = document.getElementById('moreMenu');
         if (moreBtn && moreMenu) {
             moreBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
-                moreMenu.classList.toggle('show');
-            });
-            document.addEventListener('click', (e) => {
-                if (!moreBtn.contains(e.target) && !moreMenu.contains(e.target)) {
-                    moreMenu.classList.remove('show');
+                e.preventDefault();
+                const isActive = moreMenu.classList.contains('active');
+
+                if (isActive) {
+                    moreMenu.classList.remove('active');
+                    backdrop.style.opacity = '0';
+                    backdrop.style.pointerEvents = 'none';
+                } else {
+                    moreMenu.classList.add('active');
+                    backdrop.style.opacity = '1';
+                    backdrop.style.pointerEvents = 'all';
                 }
+            });
+
+            // Close when clicking backdrop
+            backdrop.addEventListener('click', () => {
+                moreMenu.classList.remove('active');
+                backdrop.style.opacity = '0';
+                backdrop.style.pointerEvents = 'none';
             });
         }
 
