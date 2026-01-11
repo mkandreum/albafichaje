@@ -126,12 +126,31 @@ class FichajeApp {
 
         document.getElementById('settingsForm').addEventListener('submit', (e) => this.handleSaveSettings(e));
 
-        // Tab switching
+        // Tab switching (floating tab bar)
         document.querySelectorAll('.tab-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 this.switchTab(e.currentTarget.getAttribute('data-tab'));
             });
         });
+
+        // Sidebar navigation (desktop)
+        document.querySelectorAll('.sidebar-nav-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                this.switchTab(e.currentTarget.getAttribute('data-tab'));
+            });
+        });
+
+        // Sidebar logout button
+        const sidebarLogoutBtn = document.getElementById('sidebarLogoutBtn');
+        if (sidebarLogoutBtn) {
+            sidebarLogoutBtn.addEventListener('click', () => this.handleLogout());
+        }
+
+        // Admin calendar controls
+        const adminPrevBtn = document.getElementById('adminPrevMonthBtn');
+        const adminNextBtn = document.getElementById('adminNextMonthBtn');
+        if (adminPrevBtn) adminPrevBtn.addEventListener('click', () => this.changeAdminMonth(-1));
+        if (adminNextBtn) adminNextBtn.addEventListener('click', () => this.changeAdminMonth(1));
 
         window.addEventListener('resize', () => this.updateTabIndicator());
     }
@@ -269,21 +288,57 @@ class FichajeApp {
         const apellidos = this.currentUser.apellidos || '';
 
         const initials = ((nombre[0] || '?') + (apellidos[0] || '')).toUpperCase();
+        const fullName = `${nombre} ${apellidos}`;
+        const role = this.currentUser.role === 'admin' ? 'Administrador' : 'Empleado';
 
+        // Update header user info
         document.getElementById('userInitials').textContent = initials;
-        document.getElementById('userName').textContent = `${nombre} ${apellidos}`;
-        document.getElementById('userRole').textContent = this.currentUser.role === 'admin' ? 'Administrador' : 'Empleado';
+        document.getElementById('userName').textContent = fullName;
+        document.getElementById('userRole').textContent = role;
+
+        // Update sidebar user info
+        const sidebarInitials = document.getElementById('sidebarUserInitials');
+        const sidebarName = document.getElementById('sidebarUserName');
+        const sidebarRole = document.getElementById('sidebarUserRole');
+
+        if (sidebarInitials) sidebarInitials.textContent = initials;
+        if (sidebarName) sidebarName.textContent = fullName;
+        if (sidebarRole) sidebarRole.textContent = role;
+
+        // Hide fichaje tab for admin users
+        if (this.currentUser.role === 'admin') {
+            document.querySelectorAll('.hide-for-admin').forEach(el => {
+                el.classList.add('hidden');
+            });
+            // Show admin button in both sidebar and floating bar
+            const sidebarAdminBtn = document.getElementById('sidebarAdminBtn');
+            if (sidebarAdminBtn) sidebarAdminBtn.style.display = 'flex';
+        }
     }
 
     switchTab(tabName) {
+        // Update floating tab bar
         document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-        document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+        const floatingBtn = document.querySelector(`.tab-btn[data-tab="${tabName}"]`);
+        if (floatingBtn) floatingBtn.classList.add('active');
+
+        // Update sidebar navigation
+        document.querySelectorAll('.sidebar-nav-btn').forEach(btn => btn.classList.remove('active'));
+        const sidebarBtn = document.querySelector(`.sidebar-nav-btn[data-tab="${tabName}"]`);
+        if (sidebarBtn) sidebarBtn.classList.add('active');
+
+        // Update tab content
         document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
         document.getElementById(`${tabName}Tab`).classList.add('active');
+
         this.updateTabIndicator();
+
         if (tabName === 'fichaje') this.loadTodayFichajes();
         else if (tabName === 'historico') this.renderCalendar();
-        else if (tabName === 'admin') this.loadAdminData();
+        else if (tabName === 'admin') {
+            this.loadAdminData();
+            this.renderAdminCalendar();
+        }
         else if (tabName === 'settings') this.loadSettingsForm();
     }
 
@@ -1317,6 +1372,90 @@ class FichajeApp {
                 this.showToast('✅ Datos actualizados', 'success');
             } else {
                 this.showToast(`❌ Error: ${result.message}`, 'error');
+            }
+        }
+
+        // Admin Calendar Methods
+        changeAdminMonth(direction) {
+            if (!this.adminCalendarMonth) {
+                this.adminCalendarMonth = new Date();
+            }
+            this.adminCalendarMonth = new Date(
+                this.adminCalendarMonth.getFullYear(),
+                this.adminCalendarMonth.getMonth() + direction,
+                1
+            );
+            this.renderAdminCalendar();
+        }
+
+        renderAdminCalendar() {
+            const grid = document.getElementById('adminCalendarGrid');
+            if (!grid) return; // Not on admin tab or desktop
+
+            if (!this.adminCalendarMonth) {
+                this.adminCalendarMonth = new Date();
+            }
+
+            const year = this.adminCalendarMonth.getFullYear();
+            const month = this.adminCalendarMonth.getMonth();
+            const monthNames = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+
+            const monthTitle = document.getElementById('adminCalendarMonth');
+            if (monthTitle) {
+                monthTitle.textContent = `${monthNames[month]} ${year}`;
+            }
+
+            const firstDay = new Date(year, month, 1);
+            const lastDay = new Date(year, month + 1, 0);
+            const startingDayOfWeek = firstDay.getDay() === 0 ? 6 : firstDay.getDay() - 1;
+            const daysInMonth = lastDay.getDate();
+
+            grid.innerHTML = '';
+
+            // Day headers
+            const dayHeaders = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
+            dayHeaders.forEach(day => {
+                const header = document.createElement('div');
+                header.className = 'calendar-day header';
+                header.textContent = day;
+                grid.appendChild(header);
+            });
+
+            // Empty days before month starts
+            for (let i = 0; i < startingDayOfWeek; i++) {
+                const emptyDay = document.createElement('div');
+                emptyDay.className = 'calendar-day other-month';
+                grid.appendChild(emptyDay);
+            }
+
+            const today = new Date();
+
+            // Render days
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dayElement = document.createElement('div');
+                dayElement.className = 'calendar-day';
+                const currentDate = new Date(year, month, day);
+                const dateString = currentDate.toISOString().split('T')[0];
+
+                if (dateString === today.toISOString().split('T')[0]) {
+                    dayElement.classList.add('today');
+                }
+                if (currentDate > today) {
+                    dayElement.classList.add('future');
+                }
+
+                // Check if any user has fichajes for this day
+                const hasFichajes = this.fichajes && this.fichajes.some(f => f.date === dateString);
+                const isPast = currentDate < today && dateString !== today.toISOString().split('T')[0];
+
+                if (isPast && !hasFichajes) {
+                    dayElement.classList.add('missing');
+                } else if (hasFichajes) {
+                    dayElement.classList.add('complete');
+                }
+
+                dayElement.innerHTML = `<span class="day-number">${day}</span>${(hasFichajes || isPast) ? '<span class="day-indicator"></span>' : ''}`;
+                grid.appendChild(dayElement);
             }
         }
     }
