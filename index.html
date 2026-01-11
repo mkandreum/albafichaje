@@ -642,12 +642,63 @@
             </div>
         </div>
     </div>
+    <!-- More Menu (Bottom Sheet) -->
+    <div id="moreMenu" class="more-menu">
+        <div class="more-menu-header">
+            <h3>Navegación</h3>
+            <p>Accede a todas las secciones</p>
+        </div>
+        <div class="more-menu-grid">
+            <button class="more-menu-item" data-tab="dashboard">
+                <div class="more-menu-icon" style="background: rgba(10, 132, 255, 0.15); color: #0A84FF;">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="3" width="7" height="7"></rect>
+                        <rect x="14" y="3" width="7" height="7"></rect>
+                        <rect x="14" y="14" width="7" height="7"></rect>
+                        <rect x="3" y="14" width="7" height="7"></rect>
+                    </svg>
+                </div>
+                <span>Dashboard</span>
+            </button>
+            <button class="more-menu-item" data-tab="documentos">
+                <div class="more-menu-icon" style="background: rgba(48, 209, 88, 0.15); color: #30D158;">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                        <line x1="16" y1="13" x2="8" y2="13"></line>
+                        <line x1="16" y1="17" x2="8" y2="17"></line>
+                    </svg>
+                </div>
+                <span>Documentos</span>
+            </button>
+            <button class="more-menu-item" data-tab="settings">
+                <div class="more-menu-icon" style="background: rgba(255, 159, 10, 0.15); color: #FF9F0A;">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="3" />
+                        <path
+                            d="M12 1v6m0 6v6M5.64 5.64l4.24 4.24m4.24 4.24l4.24 4.24M1 12h6m6 0h6M5.64 18.36l4.24-4.24m4.24-4.24l4.24-4.24" />
+                    </svg>
+                </div>
+                <span>Mis Datos</span>
+            </button>
+            <button class="more-menu-item" id="pwaInstallBtn" style="display: none;">
+                <div class="more-menu-icon" style="background: rgba(191, 90, 242, 0.15); color: #BF5AF2;">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="7 10 12 15 17 10"></polyline>
+                        <line x1="12" y1="15" x2="12" y2="3"></line>
+                    </svg>
+                </div>
+                <span>Instalar App</span>
+            </button>
+        </div>
+    </div>
 
     <!-- PDF Libraries (pdfmake) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.9/pdfmake.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.9/vfs_fonts.js"></script>
 
-    <script src="assets/js/app-v8.js?v=8.7"></script>
+    <script src="assets/js/app-v8.js?v=8.8"></script>
 </body>
 
 </html>
