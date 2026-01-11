@@ -1075,10 +1075,14 @@ class FichajeApp {
             }
 
             // Fetch fresh data
+            console.log('Fetching admin data...');
             const [usersRes, fichajesRes] = await Promise.all([
                 this.api.getAllUsers(),
                 this.api.getAllFichajes()
             ]);
+
+            console.log('Users Response:', usersRes);
+            console.log('Fichajes Response:', fichajesRes);
 
             if (usersRes.success) {
                 this.users = usersRes.users;
@@ -1105,6 +1109,7 @@ class FichajeApp {
             if (elToday) elToday.textContent = todayFichajesCount;
 
             // Render list
+            console.log('Calling renderEmployeeList with users:', this.users.length);
             this.renderEmployeeList();
 
             // Setup toolbars only once or update them
