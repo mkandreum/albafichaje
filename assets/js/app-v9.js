@@ -1068,8 +1068,11 @@ class FichajeApp {
         this.isLoadingAdminData = true;
 
         try {
-            // Show skeleton loading
-            this.renderSkeleton();
+            // Show skeleton loading only if we don't have data yet
+            // This prevents "flashing" or disappearing content on updates
+            if (this.users.length === 0) {
+                this.renderSkeleton();
+            }
 
             // Fetch fresh data
             const [usersRes, fichajesRes] = await Promise.all([
