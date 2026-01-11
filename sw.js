@@ -1,4 +1,4 @@
-const CACHE_NAME = 'albafichaje-v6.5';
+const CACHE_NAME = 'albafichaje-v7-network-first';
 const urlsToCache = [
     '/',
     '/index.html',
@@ -21,37 +21,36 @@ self.addEventListener('install', (event) => {
 });
 
 // Fetch event - serve from cache, fallback to network
+// Fetch event - Network First Strategy (Prioritize fresh content)
 self.addEventListener('fetch', (event) => {
+    // Only handle GET requests
+    if (event.request.method !== 'GET') return;
+
     event.respondWith(
-        caches.match(event.request)
-            .then((response) => {
-                // Cache hit - return response
-                if (response) {
-                    return response;
+        fetch(event.request)
+            .then((networkResponse) => {
+                // Network success: return response and update cache
+                if (!networkResponse || networkResponse.status !== 200 || networkResponse.type !== 'basic') {
+                    return networkResponse;
                 }
 
-                // Clone the request
-                const fetchRequest = event.request.clone();
+                // Clone response for cache
+                const responseToCache = networkResponse.clone();
 
-                return fetch(fetchRequest).then((response) => {
-                    // Check if valid response
-                    if (!response || response.status !== 200 || response.type !== 'basic') {
-                        return response;
-                    }
+                // Cache static assets, ignore API
+                if (!event.request.url.includes('/api/')) {
+                    caches.open(CACHE_NAME)
+                        .then((cache) => {
+                            cache.put(event.request, responseToCache);
+                        });
+                }
 
-                    // Clone the response
-                    const responseToCache = response.clone();
-
-                    // Don't cache API calls
-                    if (!event.request.url.includes('/api/')) {
-                        caches.open(CACHE_NAME)
-                            .then((cache) => {
-                                cache.put(event.request, responseToCache);
-                            });
-                    }
-
-                    return response;
-                });
+                return networkResponse;
+            })
+            .catch(() => {
+                // Network failure: fallback to cache (Offline Mode)
+                console.log('Network failed, serving from cache:', event.request.url);
+                return caches.match(event.request);
             })
     );
 });
