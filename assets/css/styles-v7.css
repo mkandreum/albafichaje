@@ -2469,3 +2469,9 @@ body::before {
 }
 
 /* v6.5 force deploy */
+.more-trigger {
+    z-index: 5000 !important;
+    position: relative !important;
+    cursor: pointer !important;
+    pointer-events: auto !important;
+}

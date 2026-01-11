@@ -162,28 +162,51 @@ class FichajeApp {
         // More Menu Logic (Bottom Sheet)
         const moreBtn = document.getElementById('moreTabBtn');
         const moreMenu = document.getElementById('moreMenu');
+        // More Menu Logic - Robust Implementation
         if (moreBtn && moreMenu) {
-            moreBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
+            // Remove old listeners cloning node (optional but safe)
+            // const newMoreBtn = moreBtn.cloneNode(true);
+            // moreBtn.parentNode.replaceChild(newMoreBtn, moreBtn);
+
+            moreBtn.onclick = (e) => {
                 e.preventDefault();
+                e.stopPropagation();
+                console.log('More button clicked');
+
                 const isActive = moreMenu.classList.contains('active');
 
                 if (isActive) {
                     moreMenu.classList.remove('active');
                     backdrop.style.opacity = '0';
                     backdrop.style.pointerEvents = 'none';
+                    document.body.classList.remove('menu-open');
                 } else {
                     moreMenu.classList.add('active');
                     backdrop.style.opacity = '1';
                     backdrop.style.pointerEvents = 'all';
+                    document.body.classList.add('menu-open');
                 }
-            });
+            };
 
             // Close when clicking backdrop
-            backdrop.addEventListener('click', () => {
+            backdrop.onclick = () => {
                 moreMenu.classList.remove('active');
                 backdrop.style.opacity = '0';
                 backdrop.style.pointerEvents = 'none';
+                document.body.classList.remove('menu-open');
+            };
+
+            // Close when clicking items
+            moreMenu.querySelectorAll('button').forEach(btn => {
+                btn.onclick = () => {
+                    const tabId = btn.dataset.tab;
+                    if (tabId) this.switchTab(tabId);
+
+                    moreMenu.classList.remove('active');
+                    backdrop.style.opacity = '0';
+                    backdrop.style.pointerEvents = 'none';
+                    document.body.classList.remove('menu-open');
+                };
             });
         }
 
