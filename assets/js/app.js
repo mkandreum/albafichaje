@@ -131,24 +131,57 @@ class FichajeApp {
 
         document.getElementById('settingsForm').addEventListener('submit', (e) => this.handleSaveSettings(e));
 
-        // Tab switching
-        document.querySelectorAll('.tab-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                this.switchTab(e.currentTarget.getAttribute('data-tab'));
-            });
+        // Tab switching (Bar and Menu)
+        document.querySelectorAll('.tab-btn, .more-menu-item').forEach(btn => {
+            if (!btn.classList.contains('more-trigger')) {
+                btn.addEventListener('click', (e) => {
+                    const tab = e.currentTarget.getAttribute('data-tab');
+                    if (tab) {
+                        this.switchTab(tab);
+                        const menu = document.getElementById('moreMenu');
+                        if (menu) menu.classList.remove('show');
+                    }
+                });
+            }
         });
 
-        window.addEventListener('resize', () => this.updateTabIndicator());
+        // More Menu Logic
+        const moreBtn = document.getElementById('moreTabBtn');
+        const moreMenu = document.getElementById('moreMenu');
+        if (moreBtn && moreMenu) {
+            moreBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                moreMenu.classList.toggle('show');
+            });
+            document.addEventListener('click', (e) => {
+                if (!moreBtn.contains(e.target) && !moreMenu.contains(e.target)) {
+                    moreMenu.classList.remove('show');
+                }
+            });
+        }
 
-        const bigBtn = document.getElementById('bigFichajeBtn');
-        if (bigBtn) bigBtn.addEventListener('click', () => this.quickFichaje());
+        window.addEventListener('resize', () => this.updateTabIndicator());
     }
 
     updateTabIndicator() {
-        const activeBtn = document.querySelector('.tab-btn.active');
+        let activeBtn = document.querySelector('.tab-btn.active');
+        const moreBtn = document.getElementById('moreTabBtn');
+        const moreMenu = document.getElementById('moreMenu');
+
+        // Check if active tab is inside the more menu (hidden in bar)
+        if (activeBtn && getComputedStyle(activeBtn).display === 'none' && moreBtn && getComputedStyle(moreBtn).display !== 'none') {
+            activeBtn = moreBtn;
+            moreBtn.classList.add('active'); // Highlight more button
+        } else {
+            if (moreBtn) moreBtn.classList.remove('active'); // Unhighlight if normal tab selected
+        }
+
         const indicator = document.getElementById('tabIndicator');
         const container = document.querySelector('.tabs-container');
+
         if (!activeBtn || !indicator || !container) return;
+        if (getComputedStyle(activeBtn).display === 'none') return;
+
         const btnRect = activeBtn.getBoundingClientRect();
         const containerRect = container.getBoundingClientRect();
         indicator.style.left = `${btnRect.left - containerRect.left}px`;
@@ -344,9 +377,8 @@ class FichajeApp {
     }
 
     switchTab(tabName) {
-        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-        const tabBtn = document.querySelector(`[data-tab="${tabName}"]`);
-        if (tabBtn) tabBtn.classList.add('active');
+        document.querySelectorAll('.tab-btn, .more-menu-item').forEach(btn => btn.classList.remove('active'));
+        document.querySelectorAll(`[data-tab="${tabName}"]`).forEach(btn => btn.classList.add('active'));
 
         document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
         const tabContent = document.getElementById(`${tabName}Tab`);

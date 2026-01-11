@@ -621,7 +621,7 @@
                     </svg>
                     <span>Firma</span>
                 </button>
-                <button class="tab-btn" data-tab="dashboard" id="dashboardTabBtn">
+                <button class="tab-btn mobile-hidden" data-tab="dashboard" id="dashboardTabBtn">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <rect x="3" y="3" width="7" height="7"></rect>
                         <rect x="14" y="3" width="7" height="7"></rect>
@@ -630,7 +630,7 @@
                     </svg>
                     <span>Dashboard</span>
                 </button>
-                <button class="tab-btn" data-tab="documentos" id="documentosTabBtn">
+                <button class="tab-btn mobile-hidden" data-tab="documentos" id="documentosTabBtn">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
                         <polyline points="14 2 14 8 20 8"></polyline>
@@ -639,7 +639,7 @@
                     </svg>
                     <span>Docs</span>
                 </button>
-                <button class="tab-btn" data-tab="settings">
+                <button class="tab-btn mobile-hidden" data-tab="settings" id="settingsTabBtn">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <circle cx="12" cy="12" r="3" />
                         <path
@@ -647,6 +647,18 @@
                     </svg>
                     <span>Ajustes</span>
                 </button>
+
+                <!-- More Button (Mobile) -->
+                <button class="tab-btn more-trigger" id="moreTabBtn">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="1"></circle>
+                        <circle cx="19" cy="12" r="1"></circle>
+                        <circle cx="5" cy="12" r="1"></circle>
+                    </svg>
+                    <span>Más</span>
+                </button>
+
+                <!-- Admin Tabs (Hidden by default, managed by JS) -->
                 <button class="tab-btn" data-tab="admin" id="adminTabBtn" style="display: none;">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M12 2L2 7l10 5 10-5-10-5z" />
@@ -680,6 +692,36 @@
                             d="M12 1v6m0 6v6M5.64 5.64l4.24 4.24m4.24 4.24l4.24 4.24M1 12h6m6 0h6M5.64 18.36l4.24-4.24m4.24-4.24l4.24-4.24" />
                     </svg>
                     <span>Config</span>
+                </button>
+            </div>
+
+            <!-- More Menu (Mobile Pop-up) -->
+            <div id="moreMenu" class="more-menu">
+                <button class="more-menu-item" data-tab="dashboard">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="3" width="7" height="7"></rect>
+                        <rect x="14" y="3" width="7" height="7"></rect>
+                        <rect x="14" y="14" width="7" height="7"></rect>
+                        <rect x="3" y="14" width="7" height="7"></rect>
+                    </svg>
+                    Dashboard
+                </button>
+                <button class="more-menu-item" data-tab="documentos">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                        <line x1="16" y1="13" x2="8" y2="13"></line>
+                        <line x1="16" y1="17" x2="8" y2="17"></line>
+                    </svg>
+                    Docs
+                </button>
+                <button class="more-menu-item" data-tab="settings">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="3" />
+                        <path
+                            d="M12 1v6m0 6v6M5.64 5.64l4.24 4.24m4.24 4.24l4.24 4.24M1 12h6m6 0h6M5.64 18.36l4.24-4.24m4.24-4.24l4.24-4.24" />
+                    </svg>
+                    Ajustes
                 </button>
             </div>
         </nav>
