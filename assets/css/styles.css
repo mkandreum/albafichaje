@@ -1896,3 +1896,98 @@ body::before {
         height: 20px;
     }
 }
+
+/* ==========================================
+   DESKTOP LAYOUT ENHANCEMENTS
+   ========================================== */
+
+/* Wider desktop layout */
+@media (min-width: 1200px) {
+    #appScreen {
+        max-width: 1400px;
+    }
+    
+    .content-card {
+        padding: 32px 40px;
+    }
+    
+    /* Enhanced admin stats grid */
+    .admin-stats {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 20px;
+        margin-bottom: 32px;
+    }
+    
+    .stat-card {
+        padding: 24px;
+        min-height: 120px;
+    }
+    
+    .stat-card h3 {
+        font-size: 32px;
+        margin-bottom: 4px;
+    }
+    
+    .stat-card p {
+        font-size: 12px;
+    }
+}
+
+/* Enhanced admin table for desktop */
+@media (min-width: 900px) {
+    .admin-table th {
+        font-size: 11px;
+        padding: 20px 16px;
+    }
+    
+    .admin-table td {
+        padding: 18px 16px;
+        font-size: 14px;
+    }
+    
+    .table-user-info {
+        gap: 14px;
+    }
+    
+    .table-avatar {
+        width: 36px;
+        height: 36px;
+        font-size: 14px;
+    }
+}
+
+/* Sticky toolbar */
+.admin-toolbar {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(20px);
+    padding: 16px 0;
+    margin: -16px 0 20px 0;
+}
+
+/* Better mobile card spacing */
+@media (max-width: 900px) {
+    .employee-card {
+        padding: 20px;
+        margin-bottom: 16px;
+    }
+    
+    .employee-card .user-avatar {
+        width: 44px;
+        height: 44px;
+        font-size: 18px;
+    }
+    
+    .employee-card h4 {
+        font-size: 17px;
+        margin-bottom: 8px;
+    }
+    
+    .employee-card .download-btn {
+        padding: 12px;
+        font-size: 13px;
+        min-height: 44px;
+    }
+}

@@ -254,16 +254,32 @@ class FichajeApp {
     showApp() {
         this.showScreen('app');
         this.updateUserInfo();
-        this.switchTab('fichaje');
+
+        if (this.currentUser.role === 'admin') {
+            // Hide employee-only tabs for admin
+            document.querySelector('[data-tab="fichaje"]').style.display = 'none';
+            document.querySelector('[data-tab="firma"]').style.display = 'none';
+
+            // Show admin tab
+            document.getElementById('adminTabBtn').style.display = 'flex';
+
+            // Switch to admin tab by default
+            this.switchTab('admin');
+            this.loadAdminData();
+        } else {
+            // Show all tabs for employees
+            document.querySelector('[data-tab="fichaje"]').style.display = 'flex';
+            document.querySelector('[data-tab="firma"]').style.display = 'flex';
+
+            // Hide admin tab
+            document.getElementById('adminTabBtn').style.display = 'none';
+
+            // Switch to fichaje tab by default
+            this.switchTab('fichaje');
+        }
+
         this.setupInactivityMonitor();
         setTimeout(() => this.updateTabIndicator(), 50);
-        if (this.currentUser.role === 'admin') {
-            document.getElementById('adminTabBtn').style.display = 'flex';
-            this.loadAdminData();
-            setTimeout(() => this.updateTabIndicator(), 100);
-        } else {
-            document.getElementById('adminTabBtn').style.display = 'none';
-        }
     }
 
     updateUserInfo() {
