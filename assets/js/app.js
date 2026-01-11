@@ -304,6 +304,10 @@ class FichajeApp {
             document.getElementById('adminTabBtn').style.display = 'flex';
             document.getElementById('estadisticasTabBtn').style.display = 'flex';
 
+            // Hide More Button for Admin (Use !important to override CSS media queries if needed, or inline style)
+            const moreBtn = document.getElementById('moreTabBtn');
+            if (moreBtn) moreBtn.style.setProperty('display', 'none', 'important');
+
             // Switch to admin tab by default
             this.switchTab('admin');
             this.loadAdminData();
@@ -315,6 +319,10 @@ class FichajeApp {
             document.querySelector('[data-tab="dashboard"]').style.display = 'flex';
             document.querySelector('[data-tab="documentos"]').style.display = 'flex';
             document.getElementById('settingsTabBtn') && (document.getElementById('settingsTabBtn').style.display = 'flex');
+
+            // Reset More Button visibility (CSS takes over)
+            const moreBtn = document.getElementById('moreTabBtn');
+            if (moreBtn) moreBtn.style.removeProperty('display');
 
             // Hide admin tabs
             document.getElementById('adminTabBtn').style.display = 'none';
