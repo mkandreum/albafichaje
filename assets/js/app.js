@@ -1817,3 +1817,4 @@ class FichajeApp {
     }
 }
 document.addEventListener('DOMContentLoaded', () => { window.app = new FichajeApp(); });
+// v6.5 force deploy
