@@ -260,8 +260,11 @@ class FichajeApp {
             document.querySelector('[data-tab="fichaje"]').style.display = 'none';
             document.querySelector('[data-tab="firma"]').style.display = 'none';
 
-            // Show admin tab
+            // Show admin tabs
             document.getElementById('adminTabBtn').style.display = 'flex';
+            document.getElementById('estadisticasTabBtn').style.display = 'flex';
+            document.getElementById('reportesTabBtn').style.display = 'flex';
+            document.getElementById('configuracionTabBtn').style.display = 'flex';
 
             // Switch to admin tab by default
             this.switchTab('admin');
@@ -271,8 +274,11 @@ class FichajeApp {
             document.querySelector('[data-tab="fichaje"]').style.display = 'flex';
             document.querySelector('[data-tab="firma"]').style.display = 'flex';
 
-            // Hide admin tab
+            // Hide admin tabs
             document.getElementById('adminTabBtn').style.display = 'none';
+            document.getElementById('estadisticasTabBtn').style.display = 'none';
+            document.getElementById('reportesTabBtn').style.display = 'none';
+            document.getElementById('configuracionTabBtn').style.display = 'none';
 
             // Switch to fichaje tab by default
             this.switchTab('fichaje');
@@ -1519,3 +1525,61 @@ class FichajeApp {
     }
 }
 document.addEventListener('DOMContentLoaded', () => { window.app = new FichajeApp(); });
+
+// New admin tab functions
+exportToCSV() {
+    const csvData = this.fichajes.map(f => ({
+        Usuario: this.users.find(u => u.id === f.userId)?.email || '',
+        Fecha: f.date,
+        Entrada: f.entryTime || '',
+        Salida: f.exitTime || ''
+    }));
+
+    const csv = [
+        Object.keys(csvData[0]).join(','),
+        ...csvData.map(row => Object.values(row).join(','))
+    ].join('\n');
+
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `fichajes_${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+
+    this.showToast('✅ CSV exportado', 'success');
+}
+    
+    async exportAllPDFs() {
+    this.showToast('Generando PDFs para todos los empleados...', 'info');
+    for (const user of this.users) {
+        await this.generatePDFForUser(user.id);
+        await new Promise(resolve => setTimeout(resolve, 500));
+    }
+    this.showToast(`✅ ${this.users.length} PDFs generados`, 'success');
+}
+
+generateCustomReport() {
+    const start = document.getElementById('reportStartDate').value;
+    const end = document.getElementById('reportEndDate').value;
+
+    if (!start || !end) {
+        this.showToast('Selecciona rango de fechas', 'error');
+        return;
+    }
+
+    this.showToast(`Generando reporte ${start} a ${end}...`, 'info');
+    // TODO: Implement custom report logic
+}
+
+saveConfig() {
+    const config = {
+        workStart: document.getElementById('workStartTime').value,
+        workEnd: document.getElementById('workEndTime').value,
+        holidays: document.getElementById('holidays').value
+    };
+
+    localStorage.setItem('systemConfig', JSON.stringify(config));
+    this.showToast('✅ Configuración guardada', 'success');
+}
+}

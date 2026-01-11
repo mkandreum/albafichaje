@@ -1991,3 +1991,32 @@ body::before {
         min-height: 44px;
     }
 }
+
+/* ==========================================
+   NEW TABS STYLING
+   ========================================== */
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+}
+
+.chart-container {
+    min-height: 200px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-tertiary);
+    font-size: 14px;
+}
+
+.report-section, .config-section {
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.report-section h3, .config-section h3 {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
