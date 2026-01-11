@@ -925,7 +925,54 @@ class FichajeApp {
 
         // Render List
         const list = document.getElementById('employeeList');
-        list.innerHTML = this.users.map(user => {
+
+        // Generate Table Rows (Desktop)
+        const tableRows = this.users.map(user => {
+            const lastFichaje = this.fichajes
+                .filter(f => f.userId === user.id)
+                .sort((a, b) => new Date(b.date) - new Date(a.date))[0];
+
+            return `
+                <tr>
+                    <td>
+                        <div class="table-user-info">
+                            <div class="table-avatar">
+                                ${(user.nombre[0] + (user.apellidos[0] || '')).toUpperCase()}
+                            </div>
+                            <div>
+                                <div style="font-weight: 600;">${user.nombre} ${user.apellidos}</div>
+                                <div style="font-size: 11px; color: var(--text-secondary);">${user.email}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <div style="font-size: 13px;">${user.dni || '-'}</div>
+                    </td>
+                    <td>
+                        <div style="font-size: 13px;">${lastFichaje ? lastFichaje.date : 'Nunca'}</div>
+                    </td>
+                    <td>
+                        <div class="table-actions">
+                             <button class="table-btn btn-reset" onclick="window.app.resetUserPassword('${user.id}', '${user.email}')" title="Resetear Contraseña">
+                                🔑 Reset
+                            </button>
+                            <button class="table-btn btn-pdf" onclick="window.app.generatePDFForUser('${user.id}')" title="PDF Mes Actual">
+                                📄 Mes
+                            </button>
+                            <button class="table-btn btn-pdf-hist" onclick="window.app.generateAllPDFsForUser('${user.id}', '${user.nombre} ${user.apellidos}')" title="PDFs Históricos">
+                                📦 Historial
+                            </button>
+                            <button class="table-btn btn-delete" onclick="window.app.deleteUser('${user.id}', '${user.email}')" title="Borrar Usuario">
+                                🗑️
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        }).join('');
+
+        // Generate Cards (Mobile)
+        const mobileCards = this.users.map(user => {
             const lastFichaje = this.fichajes
                 .filter(f => f.userId === user.id)
                 .sort((a, b) => new Date(b.date) - new Date(a.date))[0];
@@ -934,7 +981,7 @@ class FichajeApp {
                 <div class="employee-card">
                     <div style="display: flex; gap: 10px; align-items: flex-start;">
                         <div class="user-avatar" style="width: 36px; height: 36px; font-size: 14px; flex-shrink: 0;">
-                            ${(user.nombre[0] + user.apellidos[0]).toUpperCase()}
+                            ${(user.nombre[0] + (user.apellidos[0] || '')).toUpperCase()}
                         </div>
                         <div style="flex: 1; min-width: 0;">
                             <h4 style="margin: 0 0 4px 0; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
@@ -958,15 +1005,42 @@ class FichajeApp {
                     </div>
                     <div style="display: flex; gap: 6px; margin-top: 6px;">
                         <button class="download-btn" style="flex: 1; padding: 6px 8px; font-size: 11px;" onclick="window.app.generatePDFForUser('${user.id}')">
-                            📄 PDF Mes Actual
+                            📄 PDF Mes
                         </button>
                         <button class="download-btn" style="flex: 1; padding: 6px 8px; font-size: 11px; background: rgba(52,199,89,0.2);" onclick="window.app.generateAllPDFsForUser('${user.id}', '${user.nombre} ${user.apellidos}')">
-                            📦 PDFs Históricos
+                            📦 Histórico
                         </button>
                     </div>
                 </div>
             `;
         }).join('');
+
+        // Combine Views
+        list.innerHTML = `
+            <!-- Desktop Table View -->
+            <div class="desktop-only animate-fade-in">
+                <div class="admin-table-container">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Empleado</th>
+                                <th>DNI</th>
+                                <th>Último Fichaje</th>
+                                <th style="text-align: right;">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${tableRows}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Mobile Card View -->
+            <div class="mobile-only animate-fade-in">
+                ${mobileCards}
+            </div>
+        `;
     }
 
     async resetUserPassword(userId, userEmail) {
