@@ -41,12 +41,6 @@
     --safe-area-top: env(safe-area-inset-top, 47px);
     --safe-area-bottom: env(safe-area-inset-bottom, 20px);
     --padding-screen: 20px;
-
-    /* Desktop Layout */
-    --sidebar-width: 240px;
-    --content-max-width: 1400px;
-    --desktop-breakpoint: 900px;
-    --tablet-breakpoint: 768px;
 }
 
 /* ==========================================
@@ -984,6 +978,11 @@ body::before {
 
 /* Mobile optimizations for main signature pad */
 @media (max-height: 800px) {
+    #signaturePad {
+        /* This ID selector might need to be on the CONTAINER class if the canvas is sized by JS */
+        /* But CSS can force container height */
+    }
+
     .signature-section {
         margin-top: 5px;
     }
@@ -1496,232 +1495,244 @@ body::before {
 .btn-pdf-hist {
     background: rgba(48, 209, 88, 0.15);
     color: #30d158;
-}
-
-/* ==========================================
-   DESKTOP LAYOUT SYSTEM (> 900px)
+}/* ==========================================
+   DESKTOP OPTIMIZATIONS (Sidebar Layout)
    ========================================== */
+@media (min-width: 1024px) {
 
-/* Hide elements conditionally */
-.hide-for-admin {
-    display: flex !important;
-}
-
-.hide-for-admin.hidden {
-    display: none !important;
-}
-
-/* Desktop Layout Container */
-@media (min-width: 900px) {
+    /* Main Layout Grid */
     #appScreen {
+        flex-direction: row;
+        /* Sidebar | Content */
+        padding: 0;
+        overflow: hidden;
+    }
+
+    /* 1. SIDEBAR NAVIGATION */
+    .floating-tab-bar {
+        position: relative;
+        left: 0;
+        bottom: 0;
+        transform: none;
+        width: 280px;
+        height: 100vh;
+        background: rgba(30, 30, 30, 0.6);
+        /* Slightly darker/frosted */
+        backdrop-filter: blur(40px);
+        -webkit-backdrop-filter: blur(40px);
+        border-radius: 0;
+        border-right: 1px solid var(--glass-border);
         display: flex;
         flex-direction: column;
-        padding: 20px;
-        padding-bottom: 0;
+        justify-content: flex-start;
+        padding: 40px 20px;
+        z-index: 100;
+        box-shadow: none;
+        /* Integrated look */
     }
 
-    .app-header {
-        margin: 0 0 20px 0;
-        border-radius: 20px;
-    }
-
-    .app-content {
-        padding: 0;
-        max-width: var(--content-max-width);
-        margin: 0 auto;
+    /* Tabs Container in Sidebar */
+    .tabs-container {
+        flex-direction: column;
+        gap: 15px;
+        height: auto;
         width: 100%;
     }
 
-    /* Keep floating tab bar on desktop */
-    .floating-tab-bar {
-        display: flex !important;
+    /* Tab Buttons - Expanded Style */
+    .tab-btn {
+        width: 100%;
+        height: 50px;
+        border-radius: 12px;
+        justify-content: flex-start;
+        padding-left: 20px;
+        gap: 15px;
     }
 
-    /* Hide sidebar navigation on all screens */
-    .sidebar-nav {
-        display: none !important;
+    .tab-btn span {
+        display: inline-block;
+        /* Always show text */
+        font-size: 16px;
+        font-weight: 500;
     }
 
-    /* Wider content cards */
+    .tab-btn svg {
+        width: 24px;
+        height: 24px;
+    }
+
+    /* Active Indicator - Vertical Pill */
+    .active-tab-indicator {
+        display: none;
+        /* CSS Transitions harder with vertical flex, simpler to use bg color on active btn */
+    }
+
+    .tab-btn.active {
+        background: rgba(255, 255, 255, 0.15);
+        color: white;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+
+    /* 2. MAIN CONTENT AREA */
+    .app-content {
+        flex: 1;
+        height: 100vh;
+        overflow-y: auto;
+        padding: 40px;
+        max-width: none;
+        /* Unleash the width */
+        margin: 0;
+        background: transparent;
+        /* Body bg shows through */
+    }
+
+    /* Header adjustments */
+    .app-header {
+        margin: 0 0 30px 0;
+        max-width: none;
+        width: 100%;
+        background: rgba(30, 30, 30, 0.3);
+        /* Lighter glass */
+    }
+
+    .app-header.glass-card {
+        border-radius: 16px;
+    }
+
+    /* Content Cards */
+    .glass-card,
     .content-card {
-        padding: 32px;
+        padding: 40px;
+        /* More breathing room */
+        border-radius: 24px;
     }
 
-    /* Optimize fichaje form for desktop */
-    .time-input-row {
-        gap: 24px;
+    /* Login Container - Centered nicely */
+    .login-container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        max-width: 100%;
+        height: 100vh;
     }
 
-    .glass-time-picker {
-        padding: 16px;
+    .login-card {
+        width: 450px;
+        max-width: 450px;
+        background: rgba(30, 30, 30, 0.5);
+        /* Slightly more opaque */
     }
 
-    .time-input {
-        font-size: 36px;
-        padding: 12px;
-    }
-
-    /* Larger signature pads */
-    .signatures-grid {
-        gap: 20px;
-    }
-
-    .glass-signature-pad.mini {
-        height: 120px;
-    }
-
-    /* Main signature pad larger */
-    .signature-section .glass-signature-pad {
-        height: 250px;
-    }
-
-    /* Admin stats in row */
-    .admin-stats {
+    /* 3. DASHBOARD / GRID VIEWS */
+    /* Admin Panel Grid */
+    #adminTab .glass-card.content-card {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        grid-template-columns: 350px 1fr;
+        /* Stats Left | List Right */
+        gap: 30px;
+        align-items: start;
+        max-width: 1600px;
+        margin: 0 auto;
+    }
+
+    .section-title {
+        grid-column: 1 / -1;
+        font-size: 32px;
+        margin-bottom: 20px;
+    }
+
+    .admin-stats {
+        display: flex;
+        flex-direction: column;
+        /* Stack stats vertically on left */
         gap: 20px;
-        overflow-x: visible;
     }
 
     .stat-card {
-        min-width: auto;
+        width: 100%;
+        height: 150px;
+        display: flex;
+        flex-direction: row;
+        /* Icon | Text */
+        align-items: center;
+        justify-content: flex-start;
+        padding: 25px;
+        gap: 20px;
     }
 
-    /* Better spacing for settings form */
-    .form-container {
-        max-width: 600px;
+    .stat-card h3 {
+        font-size: 36px;
     }
 
-    /* Hover states for interactive elements */
-    .glass-button:hover:not(:active) {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(10, 132, 255, 0.4);
+    /* Employee List - Table Style */
+    .employee-list {
+        grid-column: 2;
+        background: rgba(20, 20, 20, 0.3);
+        border-radius: 16px;
+        padding: 20px;
+        min-height: 500px;
     }
 
-    .tab-btn:hover {
-        background: rgba(255, 255, 255, 0.05);
-    }
-
-    .employee-card:hover {
-        background: rgba(255, 255, 255, 0.06);
-        transform: translateY(-2px);
-        transition: all 0.3s ease;
-    }
-
-    /* Calendar optimization */
-    .calendar-grid {
-        gap: 8px;
-        grid-auto-rows: minmax(80px, auto);
-    }
-
-    .calendar-day {
-        font-size: 14px;
-        min-height: 80px;
-    }
-}
-
-/* ==========================================
-   ADMIN CALENDAR WIDGET
-   ========================================== */
-
-.admin-calendar-widget {
-    margin-top: 30px;
-    padding: 20px;
-    background: rgba(255, 255, 255, 0.02);
-    border-radius: 16px;
-    border: 1px solid var(--glass-border-light);
-}
-
-.admin-calendar-widget h3 {
-    font-size: 18px;
-    font-weight: 600;
-    margin-bottom: 16px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.admin-calendar-widget h3 svg {
-    width: 20px;
-    height: 20px;
-    stroke: var(--accent-primary);
-}
-
-/* Desktop-specific admin calendar */
-@media (min-width: 900px) {
-    .admin-calendar-widget {
-        display: block;
-    }
-
-    .admin-calendar-widget .calendar-grid {
-        grid-auto-rows: minmax(60px, auto);
-    }
-
-    .admin-calendar-widget .calendar-day {
-        min-height: 60px;
-        font-size: 12px;
-    }
-}
-
-/* Hide admin calendar widget on mobile */
-@media (max-width: 899px) {
-    .admin-calendar-widget {
-        display: none;
-    }
-}
-
-/* ==========================================
-   TABLET BREAKPOINT (768px - 900px)
-   ========================================== */
-
-@media (min-width: 768px) and (max-width: 899px) {
-    .content-card {
-        padding: 28px;
-    }
-
-    .time-input-row {
-        gap: 16px;
-    }
-
-    .signatures-grid {
-        gap: 16px;
-    }
-
-    .glass-signature-pad.mini {
-        height: 80px;
-    }
-
-    .admin-stats {
+    .user-card {
         display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 16px;
-    }
-}
-
-/* ==========================================
-   UTILITY CLASSES
-   ========================================== */
-
-.desktop-only {
-    display: none;
-}
-
-@media (min-width: 900px) {
-    .desktop-only {
-        display: block;
+        grid-template-columns: 50px 2fr 1fr 1fr auto;
+        align-items: center;
+        padding: 15px;
+        gap: 15px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
     }
 
-    .mobile-only {
-        display: none !important;
+    .user-card:hover {
+        background: rgba(255, 255, 255, 0.05);
+        transform: scale(1.01);
+        transition: all 0.2s ease;
+        cursor: pointer;
     }
-}
 
-/* Smooth transitions for responsive changes */
-* {
-    transition: background-color 0.3s ease, transform 0.3s ease;
-}
+    /* Adjust avatar in list */
+    .user-card .user-avatar {
+        width: 40px;
+        height: 40px;
+        font-size: 16px;
+    }
 
-/* Prevent transition on resize */
-.resizing * {
-    transition: none !important;
+    /* 4. MODALS */
+    .modal-content.glass-card {
+        max-width: 500px;
+        padding: 40px;
+    }
+
+    /* 5. HOVER EFFECTS */
+    .glass-button:hover {
+        filter: brightness(1.2);
+        transform: translateY(-2px);
+    }
+
+    /* Scrollbars */
+    ::-webkit-scrollbar {
+        width: 10px;
+        background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 10px;
+        border: 2px solid rgba(0, 0, 0, 0);
+        /* Fake padding */
+        background-clip: padding-box;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+        background: rgba(255, 255, 255, 0.4);
+        background-clip: padding-box;
+    }
+
+    /* Time Pickers */
+    .time-input-row {
+        gap: 40px;
+    }
+
+    .time-input {
+        font-size: 48px;
+    }
 }
