@@ -40,6 +40,9 @@ class FichajeApp {
         this.currentUser = null;
         this.fichajes = [];
         this.users = [];
+        this.filteredUsers = []; // For admin search
+        this.selectedUsers = new Set(); // For admin bulk actions
+        this.isLoadingAdminData = false; // Loading guard
         this.currentView = 'login';
         this.currentMonth = new Date();
         this.signaturePad = null;
@@ -176,8 +179,6 @@ class FichajeApp {
             this.renderCalendar();
             if (this.currentUser.role === 'admin') {
                 document.getElementById('adminTabBtn').style.display = 'flex';
-                // Only load admin functionality on demand inside showApp or here
-                if (this.loadAdminData) setTimeout(() => this.loadAdminData(), 500);
             }
         } else {
             this.showToast(result.message || 'Error de login', 'error');
@@ -273,7 +274,6 @@ class FichajeApp {
             if (statsTab) statsTab.style.display = 'flex';
 
             this.switchTab('admin');
-            this.loadAdminData();
         } else {
             // Show employee tabs
             document.querySelector('[data-tab="fichaje"]').style.display = 'flex';
@@ -1060,49 +1060,60 @@ class FichajeApp {
     // Admin Implementation
     async loadAdminData() {
         if (!this.currentUser || this.currentUser.role !== 'admin') return;
+        if (this.isLoadingAdminData) return;
 
-        // Show skeleton loading
-        this.renderSkeleton();
+        this.isLoadingAdminData = true;
 
-        // Fetch fresh data
-        const [usersRes, fichajesRes] = await Promise.all([
-            this.api.getAllUsers(),
-            this.api.getAllFichajes()
-        ]);
+        try {
+            // Show skeleton loading
+            this.renderSkeleton();
 
-        if (usersRes.success) {
-            this.users = usersRes.users;
-            this.filteredUsers = [...this.users]; // For search
-            this.selectedUsers = new Set(); // For bulk actions
-        } else {
-            this.showToast('Error cargando usuarios: ' + usersRes.message, 'error');
+            // Fetch fresh data
+            const [usersRes, fichajesRes] = await Promise.all([
+                this.api.getAllUsers(),
+                this.api.getAllFichajes()
+            ]);
+
+            if (usersRes.success) {
+                this.users = usersRes.users;
+                this.filteredUsers = [...this.users]; // For search
+                this.selectedUsers = new Set(); // For bulk actions
+            } else {
+                this.showToast('Error cargando usuarios: ' + (usersRes.message || 'Error desconocido'), 'error');
+            }
+
+            if (fichajesRes.success) {
+                this.fichajes = fichajesRes.fichajes;
+            } else {
+                this.showToast('Error cargando fichajes: ' + (fichajesRes.message || 'Error desconocido'), 'error');
+            }
+
+            // Update stats
+            const totalEmployees = this.users.length;
+            const today = new Date().toISOString().split('T')[0];
+            const todayFichajesCount = this.fichajes.filter(f => f.date === today).length;
+
+            const elTotal = document.getElementById('totalEmployees');
+            const elToday = document.getElementById('todayFichajes');
+            if (elTotal) elTotal.textContent = totalEmployees;
+            if (elToday) elToday.textContent = todayFichajesCount;
+
+            // Render list
+            this.renderEmployeeList();
+
+            // Setup toolbars only once or update them
+            this.setupSearch();
+            this.setupSorting();
+            this.setupBulkActions();
+
+        } catch (error) {
+            console.error('Error in loadAdminData:', error);
+            this.showToast('Error al procesar datos de administración', 'error');
+            // Try to render what we have
+            this.renderEmployeeList();
+        } finally {
+            this.isLoadingAdminData = false;
         }
-
-        if (fichajesRes.success) {
-            this.fichajes = fichajesRes.fichajes;
-        } else {
-            this.showToast('Error cargando fichajes: ' + fichajesRes.message, 'error');
-        }
-
-        // Update stats
-        const totalEmployees = this.users.length;
-        const today = new Date().toISOString().split('T')[0];
-        const todayFichajesCount = this.fichajes.filter(f => f.date === today).length;
-
-        document.getElementById('totalEmployees').textContent = totalEmployees;
-        document.getElementById('todayFichajes').textContent = todayFichajesCount;
-
-        // Render list
-        this.renderEmployeeList();
-
-        // Setup search
-        this.setupSearch();
-
-        // Setup sorting
-        this.setupSorting();
-
-        // Setup bulk actions
-        this.setupBulkActions();
     }
 
     renderSkeleton() {
