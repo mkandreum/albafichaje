@@ -2,7 +2,7 @@ const CACHE_NAME = 'albafichaje-v7-network-first';
 const urlsToCache = [
     '/',
     '/index.html',
-    '/assets/css/styles.css',
+    '/assets/css/styles-v7.css',
     '/assets/js/app-v6.js',
     '/assets/icons/icon-192.png',
     '/assets/icons/icon-512.png'
