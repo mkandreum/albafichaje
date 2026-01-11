@@ -1,0 +1,10 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    volumes:
+      - ./data:/var/www/html/data
+      - ./assets/uploads:/var/www/html/assets/uploads
+    # No ports mapping here to let Coolify handle it automatically via its proxy
+    restart: always

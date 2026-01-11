@@ -12,9 +12,9 @@ COPY . .
 
 # Set permissions for data and uploads
 # Ensure www-data owns EVERYTHING in /var/www/html to avoid permission issues
-RUN mkdir -p data assets/uploads && \
+RUN mkdir -p data/signatures assets/uploads && \
     chown -R www-data:www-data /var/www/html && \
-    chmod -R 755 /var/www/html
+    chmod -R 775 /var/www/html
 
 # Expose port 80
 EXPOSE 80
