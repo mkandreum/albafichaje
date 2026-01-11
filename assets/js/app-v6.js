@@ -433,13 +433,39 @@ class FichajeApp {
             return;
         }
 
-        const existingIndex = this.fichajes.findIndex(f => f.userId === this.currentUser.id && f.date === date);
-        if (existingIndex !== -1) {
-            this.showConfirmModal(() => {
-                this.processFichaje(date, entryTime, exitTime, existingIndex);
+        const userId = this.currentUser.id || this.currentUser.email;
+        const dailyFichajes = this.fichajes.filter(f => f.userId === userId && f.date === date);
+
+        // Sort by time
+        dailyFichajes.sort((a, b) => (a.entryTime > b.entryTime ? 1 : -1));
+
+        if (dailyFichajes.length > 0) {
+            const lastFichaje = dailyFichajes[dailyFichajes.length - 1];
+
+            // AUTO-ADD AFTERNOON SHIFT LOGIC
+            // If creating a 2nd shift (max 2), and previous is closed, and new time is later...
+            // Just add it directly without asking to "replace".
+            if (dailyFichajes.length < 2 && lastFichaje.exitTime && entryTime > lastFichaje.exitTime) {
+                // Turno de tarde detectado -> Añadir directo
+                this.processFichaje(date, entryTime, exitTime);
+                return;
+            }
+
+            // Otherwise (overlap or max shifts), ask confirmation
+            this.showCustomModal({
+                title: 'Fichaje Existente',
+                message: 'Ya hay registros para este día que coinciden. ¿Quieres sobrescribir el registro existente?',
+                confirmText: 'Sobrescribir',
+                icon: 'warning'
+            }).then(confirmed => {
+                if (confirmed) {
+                    const existingIndex = this.fichajes.findIndex(f => f.userId === userId && f.date === date);
+                    this.processFichaje(date, entryTime, exitTime, existingIndex);
+                }
             });
             return;
         }
+
         this.processFichaje(date, entryTime, exitTime);
     }
 
