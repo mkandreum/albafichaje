@@ -188,6 +188,25 @@ class FichajeApp {
         }
 
         window.addEventListener('resize', () => this.updateTabIndicator());
+
+        // PWA Install Logic
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            this.deferredPrompt = e;
+            const installBtn = document.getElementById('pwaInstallBtn');
+            if (installBtn) {
+                installBtn.style.display = 'flex';
+                installBtn.onclick = () => {
+                    this.deferredPrompt.prompt();
+                    this.deferredPrompt.userChoice.then((choiceResult) => {
+                        if (choiceResult.outcome === 'accepted') {
+                            installBtn.style.display = 'none';
+                        }
+                        this.deferredPrompt = null;
+                    });
+                };
+            }
+        });
     }
 
     updateTabIndicator() {
