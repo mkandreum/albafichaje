@@ -189,6 +189,10 @@ function handleUpdateProfile()
             $user['apellidos'] = $apellidos;
             $user['dni'] = $dni;
             $user['afiliacion'] = $afiliacion;
+            if (isset($input['photo']))
+                $user['photo'] = $input['photo'];
+            if (isset($input['mainSignature']))
+                $user['mainSignature'] = $input['mainSignature'];
             $found = true;
 
             // Update session
@@ -196,6 +200,10 @@ function handleUpdateProfile()
             $_SESSION['user']['apellidos'] = $apellidos;
             $_SESSION['user']['dni'] = $dni;
             $_SESSION['user']['afiliacion'] = $afiliacion;
+            if (isset($input['photo']))
+                $_SESSION['user']['photo'] = $input['photo'];
+            if (isset($input['mainSignature']))
+                $_SESSION['user']['mainSignature'] = $input['mainSignature'];
             break;
         }
     }

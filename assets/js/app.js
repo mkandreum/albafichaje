@@ -449,6 +449,31 @@ class FichajeApp {
         const grid = document.getElementById('calendarGrid');
         grid.innerHTML = '';
 
+        // Calculate Stats
+        const userId = this.currentUser.id || this.currentUser.email;
+        const monthFichajes = this.fichajes.filter(f => {
+            const d = new Date(f.date);
+            return f.userId === userId && d.getMonth() === month && d.getFullYear() === year;
+        });
+
+        let totalMinutes = 0;
+        monthFichajes.forEach(f => {
+            if (f.entryTime && f.exitTime) {
+                const [eh, em] = f.entryTime.split(':').map(Number);
+                const [xh, xm] = f.exitTime.split(':').map(Number);
+                totalMinutes += (xh * 60 + xm) - (eh * 60 + em);
+            }
+        });
+
+        const hours = Math.floor(totalMinutes / 60);
+        const mins = totalMinutes % 60;
+
+        const histMonthHours = document.getElementById('histMonthHours');
+        const histMonthDays = document.getElementById('histMonthDays');
+
+        if (histMonthHours) histMonthHours.textContent = `${hours}h ${mins}m`;
+        if (histMonthDays) histMonthDays.textContent = monthFichajes.length;
+
         const dayHeaders = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
         dayHeaders.forEach(day => {
             const header = document.createElement('div');
@@ -1523,68 +1548,66 @@ class FichajeApp {
 
         this.showToast(`✅ ${selectedIds.length} PDFs generados`, 'success');
     }
-}
-document.addEventListener('DOMContentLoaded', () => { window.app = new FichajeApp(); });
 
-// New admin tab functions
-exportToCSV() {
-    const csvData = this.fichajes.map(f => ({
-        Usuario: this.users.find(u => u.id === f.userId)?.email || '',
-        Fecha: f.date,
-        Entrada: f.entryTime || '',
-        Salida: f.exitTime || ''
-    }));
+    // New admin tab functions
+    exportToCSV() {
+        const csvData = this.fichajes.map(f => ({
+            Usuario: this.users.find(u => u.id === f.userId)?.email || '',
+            Fecha: f.date,
+            Entrada: f.entryTime || '',
+            Salida: f.exitTime || ''
+        }));
 
-    const csv = [
-        Object.keys(csvData[0]).join(','),
-        ...csvData.map(row => Object.values(row).join(','))
-    ].join('\n');
+        const csv = [
+            Object.keys(csvData[0]).join(','),
+            ...csvData.map(row => Object.values(row).join(','))
+        ].join('\n');
 
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `fichajes_${new Date().toISOString().split('T')[0]}.csv`;
-    a.click();
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `fichajes_${new Date().toISOString().split('T')[0]}.csv`;
+        a.click();
 
-    this.showToast('✅ CSV exportado', 'success');
-}
-    
+        this.showToast('✅ CSV exportado', 'success');
+    }
+
     async exportAllPDFs() {
-    this.showToast('Generando PDFs para todos los empleados...', 'info');
-    for (const user of this.users) {
-        await this.generatePDFForUser(user.id);
-        await new Promise(resolve => setTimeout(resolve, 500));
-    }
-    this.showToast(`✅ ${this.users.length} PDFs generados`, 'success');
-}
-
-generateCustomReport() {
-    const start = document.getElementById('reportStartDate').value;
-    const end = document.getElementById('reportEndDate').value;
-
-    if (!start || !end) {
-        this.showToast('Selecciona rango de fechas', 'error');
-        return;
+        this.showToast('Generando PDFs para todos los empleados...', 'info');
+        for (const user of this.users) {
+            await this.generatePDFForUser(user.id);
+            await new Promise(resolve => setTimeout(resolve, 500));
+        }
+        this.showToast(`✅ ${this.users.length} PDFs generados`, 'success');
     }
 
-    this.showToast(`Generando reporte ${start} a ${end}...`, 'info');
-    // TODO: Implement custom report logic
-}
+    generateCustomReport() {
+        const start = document.getElementById('reportStartDate').value;
+        const end = document.getElementById('reportEndDate').value;
 
-saveConfig() {
-    const config = {
-        workStart: document.getElementById('workStartTime').value,
-        workEnd: document.getElementById('workEndTime').value,
-        holidays: document.getElementById('holidays').value
-    };
+        if (!start || !end) {
+            this.showToast('Selecciona rango de fechas', 'error');
+            return;
+        }
 
-    localStorage.setItem('systemConfig', JSON.stringify(config));
-    this.showToast('✅ Configuración guardada', 'success');
-}
+        this.showToast(`Generando reporte ${start} a ${end}...`, 'info');
+        // TODO: Implement custom report logic
+    }
+
+    saveConfig() {
+        const config = {
+            workStart: document.getElementById('workStartTime').value,
+            workEnd: document.getElementById('workEndTime').value,
+            holidays: document.getElementById('holidays').value
+        };
+
+        localStorage.setItem('systemConfig', JSON.stringify(config));
+        this.showToast('✅ Configuración guardada', 'success');
+    }
 
     // Quick fichaje function
-        async quickFichaje() {
+    async quickFichaje() {
         const today = new Date().toISOString().split('T')[0];
         const now = new Date();
         const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
@@ -1607,9 +1630,9 @@ saveConfig() {
         } else {
             this.showToast('Ya has fichado entrada y salida hoy', 'info');
         }
-}
+    }
 
-updateBigFichajeButton() {
+    updateBigFichajeButton() {
         const today = new Date().toISOString().split('T')[0];
         const todayFichaje = this.fichajes.find(f => f.userId === this.currentUser.id && f.date === today);
         const btn = document.getElementById('bigFichajeBtn');
@@ -1633,9 +1656,9 @@ updateBigFichajeButton() {
 
         // Update hours
         this.updateTodayHours();
-}
+    }
 
-updateTodayHours() {
+    updateTodayHours() {
         const today = new Date().toISOString().split('T')[0];
         const todayFichaje = this.fichajes.find(f => f.userId === this.currentUser.id && f.date === today);
         const hoursEl = document.getElementById('todayHours');
@@ -1652,5 +1675,37 @@ updateTodayHours() {
         } else {
             hoursEl.textContent = '0h 00m';
         }
+    }
 }
-}
+
+    // Profile Photo Handling in Class
+    setupProfilePhoto() {
+        const input = document.getElementById('profilePhotoInput');
+        if(!input) return;
+        
+        input.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if(file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const result = e.target.result;
+                    this.updateProfilePhotoUI(result);
+                    // Save to user profile (mock)
+                    this.currentUser.photo = result;
+                    localStorage.setItem('currentUser', JSON.stringify(this.currentUser));
+                    this.showToast('✅ Foto actualizada', 'success');
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    }
+
+    updateProfilePhotoUI(src) {
+        const img = document.getElementById('settingsProfileImg');
+        const placeholder = document.getElementById('settingsProfilePlaceholder');
+        if(img && placeholder) {
+            img.src = src;
+            img.style.display = 'block';
+            placeholder.style.display = 'none';
+        }
+    }
