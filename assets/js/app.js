@@ -133,19 +133,6 @@ class FichajeApp {
             });
         });
 
-        // Sidebar navigation (desktop)
-        document.querySelectorAll('.sidebar-nav-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                this.switchTab(e.currentTarget.getAttribute('data-tab'));
-            });
-        });
-
-        // Sidebar logout button
-        const sidebarLogoutBtn = document.getElementById('sidebarLogoutBtn');
-        if (sidebarLogoutBtn) {
-            sidebarLogoutBtn.addEventListener('click', () => this.handleLogout());
-        }
-
         // Admin calendar controls
         const adminPrevBtn = document.getElementById('adminPrevMonthBtn');
         const adminNextBtn = document.getElementById('adminNextMonthBtn');
@@ -296,23 +283,11 @@ class FichajeApp {
         document.getElementById('userName').textContent = fullName;
         document.getElementById('userRole').textContent = role;
 
-        // Update sidebar user info
-        const sidebarInitials = document.getElementById('sidebarUserInitials');
-        const sidebarName = document.getElementById('sidebarUserName');
-        const sidebarRole = document.getElementById('sidebarUserRole');
-
-        if (sidebarInitials) sidebarInitials.textContent = initials;
-        if (sidebarName) sidebarName.textContent = fullName;
-        if (sidebarRole) sidebarRole.textContent = role;
-
         // Hide fichaje tab for admin users
         if (this.currentUser.role === 'admin') {
             document.querySelectorAll('.hide-for-admin').forEach(el => {
                 el.classList.add('hidden');
             });
-            // Show admin button in both sidebar and floating bar
-            const sidebarAdminBtn = document.getElementById('sidebarAdminBtn');
-            if (sidebarAdminBtn) sidebarAdminBtn.style.display = 'flex';
         }
     }
 
@@ -321,11 +296,6 @@ class FichajeApp {
         document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
         const floatingBtn = document.querySelector(`.tab-btn[data-tab="${tabName}"]`);
         if (floatingBtn) floatingBtn.classList.add('active');
-
-        // Update sidebar navigation
-        document.querySelectorAll('.sidebar-nav-btn').forEach(btn => btn.classList.remove('active'));
-        const sidebarBtn = document.querySelector(`.sidebar-nav-btn[data-tab="${tabName}"]`);
-        if (sidebarBtn) sidebarBtn.classList.add('active');
 
         // Update tab content
         document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
