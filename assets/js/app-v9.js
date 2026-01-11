@@ -518,23 +518,7 @@ class FichajeApp {
             return f.userId === userId && d.getMonth() === month && d.getFullYear() === year;
         });
 
-        let totalMinutes = 0;
-        monthFichajes.forEach(f => {
-            if (f.entryTime && f.exitTime) {
-                const [eh, em] = f.entryTime.split(':').map(Number);
-                const [xh, xm] = f.exitTime.split(':').map(Number);
-                totalMinutes += (xh * 60 + xm) - (eh * 60 + em);
-            }
-        });
 
-        const hours = Math.floor(totalMinutes / 60);
-        const mins = totalMinutes % 60;
-
-        const histMonthHours = document.getElementById('histMonthHours');
-        const histMonthDays = document.getElementById('histMonthDays');
-
-        if (histMonthHours) histMonthHours.textContent = `${hours}h ${mins}m`;
-        if (histMonthDays) histMonthDays.textContent = monthFichajes.length;
 
         const dayHeaders = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
         dayHeaders.forEach(day => {
