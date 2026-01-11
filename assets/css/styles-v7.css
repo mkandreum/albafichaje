@@ -2470,10 +2470,12 @@ body.menu-open .more-menu-backdrop,
     }
 }
 
-/* v8.5 force deploy - nuclear fix */
+/* v8.7 force deploy - debug overlay */
 .more-trigger {
     z-index: 5000 !important;
     position: relative !important;
     cursor: pointer !important;
     pointer-events: auto !important;
+    outline: 1px dashed rgba(0, 255, 0, 0.3);
+    /* DEBUG: Highlight clickable area */
 }
