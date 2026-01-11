@@ -18,11 +18,12 @@ fi
 # Initialize default users.json if missing
 if [ ! -f "/var/www/html/data/users.json" ]; then
     echo "Initializing users.json..."
+    # Password hash for 'admin123'
     cat > /var/www/html/data/users.json <<EOF
 [
   {
     "id": "6761dfa8ed432",
-    "email": "admin@fichajes.com",
+    "email": "admin@fichaje.com",
     "password": "\$2y\$10\$vI8aWBnW3fID.ZQ4/zo1G.q1lRps.9cGLcZEiGDMVr5yUP1KUOYTa",
     "nombre": "Administrador",
     "apellidos": "Sistema",

@@ -11,6 +11,34 @@ echo "<h1>Debug Auth & Permissions</h1>";
 $dataDir = __DIR__ . '/../data';
 $usersFile = $dataDir . '/users.json';
 
+// --- PASSWORD RESET LOGIC ---
+$resetDone = false;
+if (file_exists($usersFile)) {
+    $users = json_decode(file_get_contents($usersFile), true);
+    if (is_array($users)) {
+        foreach ($users as &$user) {
+            // Check for either plural or singular to catch both
+            if ($user['email'] === 'admin@fichajes.com' || $user['email'] === 'admin@fichaje.com') {
+                $user['email'] = 'admin@fichaje.com'; // Normalize to singular
+                $user['password'] = password_hash('admin123', PASSWORD_DEFAULT); // Set to admin123
+                $resetDone = true;
+                echo "<div style='background:lightgreen;padding:10px;border:1px solid green;margin:10px 0'>";
+                echo "<strong>SUCCESS:</strong> Password reset to 'admin123' for user 'admin@fichaje.com'";
+                echo "</div>";
+                break;
+            }
+        }
+        if ($resetDone) {
+            file_put_contents($usersFile, json_encode($users, JSON_PRETTY_PRINT));
+        } else {
+            echo "<div style='background:orange;padding:10px;border:1px solid orange;margin:10px 0'>";
+            echo "<strong>WARNING:</strong> Admin user not found to reset.";
+            echo "</div>";
+        }
+    }
+}
+// -----------------------------
+
 echo "<h2>Paths</h2>";
 echo "Data Dir: " . $dataDir . "<br>";
 echo "Users File: " . $usersFile . "<br>";
@@ -26,8 +54,6 @@ echo "<h2>Content</h2>";
 if (file_exists($usersFile)) {
     $content = file_get_contents($usersFile);
     $users = json_decode($content, true);
-    echo "Raw Content Length: " . strlen($content) . "<br>";
-    echo "JSON Decode Status: " . (json_last_error() === JSON_ERROR_NONE ? 'OK' : 'ERROR: ' . json_last_error_msg()) . "<br>";
     echo "User Count: " . (is_array($users) ? count($users) : 'N/A') . "<br>";
 
     if (is_array($users)) {
@@ -42,7 +68,6 @@ if (file_exists($usersFile)) {
 }
 
 echo "<h2>Session Test</h2>";
-// session_start() moved to top
 $_SESSION['debug_test'] = 'works';
 echo "Session ID: " . session_id() . "<br>";
 echo "Session Val: " . $_SESSION['debug_test'] . "<br>";
