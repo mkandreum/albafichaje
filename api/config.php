@@ -26,7 +26,7 @@ if (in_array($origin, $allowedOrigins) || $_SERVER['SERVER_NAME'] === 'localhost
 }
 
 header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type');
+header('Access-Control-Allow-Headers: Content-Type, X-CSRF-Token');
 header('Access-Control-Allow-Credentials: true');
 
 // Security Headers
@@ -45,6 +45,33 @@ ini_set('session.cookie_secure', 1); // HTTPS only
 ini_set('session.cookie_samesite', 'Strict');
 ini_set('session.use_strict_mode', 1);
 session_start();
+
+// Helper: Validate CSRF Token
+function validateCsrfToken()
+{
+    // Get token from header
+    $headers = getallheaders();
+    $token = $headers['X-CSRF-Token'] ?? $headers['X-Csrf-Token'] ?? '';
+
+    // Check if token matches session token
+    if (!isset($_SESSION['csrf_token']) || empty($token) || $token !== $_SESSION['csrf_token']) {
+        response(['success' => false, 'message' => 'Invalid CSRF token'], 403);
+    }
+}
+
+// Helper: Check if user is admin
+function isAdmin()
+{
+    return isset($_SESSION['user']) && $_SESSION['user']['role'] === 'admin';
+}
+
+// Helper: Require admin role
+function requireAdmin()
+{
+    if (!isAdmin()) {
+        response(['success' => false, 'message' => 'Acceso denegado. Solo administradores.'], 403);
+    }
+}
 
 // Helper: Read JSON
 function readJson($file)
