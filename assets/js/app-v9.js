@@ -1151,75 +1151,95 @@ class FichajeApp {
 
         // Generate Table Rows (Desktop)
         const tableRows = users.map((user, index) => {
-            const lastFichaje = this.fichajes
-                .filter(f => f.userId === user.id)
-                .sort((a, b) => new Date(b.date) - new Date(a.date))[0];
+            try {
+                if (!user) return '';
 
-            const isSelected = this.selectedUsers && this.selectedUsers.has(user.id);
+                // Safe access to fichajes
+                const userFichajes = (this.fichajes || []).filter(f => f && f.userId === user.id);
+                const lastFichaje = userFichajes.sort((a, b) => new Date(b.date) - new Date(a.date))[0];
 
-            return `
-                <tr class="animate-stagger" style="animation-delay: ${index * 0.03}s">
-                    <td>
-                        <input type="checkbox" class="user-checkbox" data-user-id="${user.id}" ${isSelected ? 'checked' : ''}>
-                    </td>
-                    <td>
-                        <div class="table-user-info">
-                            <div class="table-avatar">
-                                ${(user.nombre[0] + (user.apellidos[0] || '')).toUpperCase()}
+                const isSelected = this.selectedUsers && this.selectedUsers.has(user.id);
+
+                // Safe name generation
+                const nombre = user.nombre || 'Sin Nombre';
+                const apellidos = user.apellidos || '';
+                const email = user.email || 'Sin Email';
+                const initials = ((nombre[0] || '?') + (apellidos[0] || '')).toUpperCase();
+
+                return `
+                    <tr class="animate-stagger" style="animation-delay: ${index * 0.03}s">
+                        <td>
+                            <input type="checkbox" class="user-checkbox" data-user-id="${user.id}" ${isSelected ? 'checked' : ''}>
+                        </td>
+                        <td>
+                            <div class="table-user-info">
+                                <div class="table-avatar">
+                                    ${initials}
+                                </div>
+                                <div>
+                                    <div style="font-weight: 600;">${nombre} ${apellidos}</div>
+                                    <div style="font-size: 11px; color: var(--text-secondary);">${email}</div>
+                                </div>
                             </div>
-                            <div>
-                                <div style="font-weight: 600;">${user.nombre} ${user.apellidos}</div>
-                                <div style="font-size: 11px; color: var(--text-secondary);">${user.email}</div>
+                        </td>
+                        <td>
+                            <div style="font-size: 13px;">${user.dni || '-'}</div>
+                        </td>
+                        <td>
+                            <div style="font-size: 13px;">${lastFichaje ? lastFichaje.date : 'Nunca'}</div>
+                        </td>
+                        <td>
+                            <div class="table-actions">
+                                 <button class="table-btn btn-reset" onclick="window.app.resetUserPassword('${user.id}', '${email}')" title="Resetear Contraseña">
+                                    🔑 Reset
+                                </button>
+                                <button class="table-btn btn-pdf" onclick="window.app.generatePDFForUser('${user.id}')" title="PDF Mes Actual">
+                                    📄 Mes
+                                </button>
+                                <button class="table-btn btn-pdf-hist" onclick="window.app.generateAllPDFsForUser('${user.id}', '${nombre} ${apellidos}')" title="PDFs Históricos">
+                                    📦 Historial
+                                </button>
+                                <button class="table-btn btn-delete" onclick="window.app.deleteUser('${user.id}', '${email}')" title="Borrar Usuario">
+                                    🗑️
+                                </button>
                             </div>
-                        </div>
-                    </td>
-                    <td>
-                        <div style="font-size: 13px;">${user.dni || '-'}</div>
-                    </td>
-                    <td>
-                        <div style="font-size: 13px;">${lastFichaje ? lastFichaje.date : 'Nunca'}</div>
-                    </td>
-                    <td>
-                        <div class="table-actions">
-                             <button class="table-btn btn-reset" onclick="window.app.resetUserPassword('${user.id}', '${user.email}')" title="Resetear Contraseña">
-                                🔑 Reset
-                            </button>
-                            <button class="table-btn btn-pdf" onclick="window.app.generatePDFForUser('${user.id}')" title="PDF Mes Actual">
-                                📄 Mes
-                            </button>
-                            <button class="table-btn btn-pdf-hist" onclick="window.app.generateAllPDFsForUser('${user.id}', '${user.nombre} ${user.apellidos}')" title="PDFs Históricos">
-                                📦 Historial
-                            </button>
-                            <button class="table-btn btn-delete" onclick="window.app.deleteUser('${user.id}', '${user.email}')" title="Borrar Usuario">
-                                🗑️
-                            </button>
-                        </div>
-                    </td>
-                </tr>
-            `;
+                        </td>
+                    </tr>
+                `;
+            } catch (err) {
+                console.error('Error rendering user row:', user, err);
+                return '';
+            }
         }).join('');
 
         // Generate Cards (Mobile)
         const mobileCards = users.map((user, index) => {
-            const lastFichaje = this.fichajes
-                .filter(f => f.userId === user.id)
-                .sort((a, b) => new Date(b.date) - new Date(a.date))[0];
+            try {
+                if (!user) return '';
 
-            const isSelected = this.selectedUsers && this.selectedUsers.has(user.id);
+                const userFichajes = (this.fichajes || []).filter(f => f && f.userId === user.id);
+                const lastFichaje = userFichajes.sort((a, b) => new Date(b.date) - new Date(a.date))[0];
 
-            return `
+                const isSelected = this.selectedUsers && this.selectedUsers.has(user.id);
+                const nombre = user.nombre || 'Sin Nombre';
+                const apellidos = user.apellidos || '';
+                const email = user.email || 'Sin Email';
+                const initials = ((nombre[0] || '?') + (apellidos[0] || '')).toUpperCase();
+
+
+                return `
                 <div class="employee-card animate-stagger" style="animation-delay: ${index * 0.05}s">
                     <div style="display: flex; gap: 12px; align-items: flex-start;">
                         <input type="checkbox" class="user-checkbox" data-user-id="${user.id}" ${isSelected ? 'checked' : ''} style="margin-top: 4px;">
                         <div class="user-avatar" style="width: 40px; height: 40px; font-size: 16px; flex-shrink: 0;">
-                            ${(user.nombre[0] + (user.apellidos[0] || '')).toUpperCase()}
+                            ${initials}
                         </div>
                         <div style="flex: 1; min-width: 0;">
                             <h4 style="margin: 0 0 6px 0; font-size: 16px; font-weight: 600; color: #fff;">
-                                ${user.nombre} ${user.apellidos}
+                                ${nombre} ${apellidos}
                             </h4>
                             <p style="margin: 0 0 4px 0; font-size: 13px; color: var(--text-secondary);">
-                                ${user.email}
+                                ${email}
                             </p>
                             <p style="margin: 0; font-size: 12px; color: var(--text-tertiary);">
                                 DNI: ${user.dni || '-'} • Último: ${lastFichaje ? lastFichaje.date : 'Nunca'}
@@ -1227,21 +1247,24 @@ class FichajeApp {
                         </div>
                     </div>
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px;">
-                        <button class="download-btn" style="padding: 10px; font-size: 12px;" onclick="window.app.resetUserPassword('${user.id}', '${user.email}')">
+                        <button class="download-btn" style="padding: 10px; font-size: 12px;" onclick="window.app.resetUserPassword('${user.id}', '${email}')">
                             🔑 Reset
                         </button>
-                        <button class="download-btn" style="padding: 10px; font-size: 12px; background: rgba(255,59,48,0.15);" onclick="window.app.deleteUser('${user.id}', '${user.email}')">
+                        <button class="download-btn" style="padding: 10px; font-size: 12px; background: rgba(255,59,48,0.15);" onclick="window.app.deleteUser('${user.id}', '${email}')">
                             🗑️ Borrar
                         </button>
                         <button class="download-btn" style="padding: 10px; font-size: 12px;" onclick="window.app.generatePDFForUser('${user.id}')">
                             📄 PDF Mes
                         </button>
-                        <button class="download-btn" style="padding: 10px; font-size: 12px; background: rgba(52,199,89,0.15);" onclick="window.app.generateAllPDFsForUser('${user.id}', '${user.nombre} ${user.apellidos}')">
+                        <button class="download-btn" style="padding: 10px; font-size: 12px; background: rgba(52,199,89,0.15);" onclick="window.app.generateAllPDFsForUser('${user.id}', '${nombre} ${apellidos}')">
                             📦 Histórico
                         </button>
                     </div>
                 </div>
             `;
+            } catch (err) {
+                return '';
+            }
         }).join('');
 
         // Combine Views
