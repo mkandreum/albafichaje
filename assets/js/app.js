@@ -139,6 +139,9 @@ class FichajeApp {
         });
 
         window.addEventListener('resize', () => this.updateTabIndicator());
+
+        const bigBtn = document.getElementById('bigFichajeBtn');
+        if (bigBtn) bigBtn.addEventListener('click', () => this.quickFichaje());
     }
 
     updateTabIndicator() {
