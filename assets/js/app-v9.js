@@ -260,9 +260,11 @@ class FichajeApp {
 
         if (this.currentUser.role === 'admin') {
             // Hide employee-only tabs
-            document.querySelector('[data-tab="fichaje"]').style.display = 'none';
-            document.querySelector('[data-tab="historico"]').style.display = 'none';
-            document.querySelector('[data-tab="firma"]').style.display = 'none';
+            const tabsToHide = ['fichaje', 'historico', 'firma'];
+            tabsToHide.forEach(tab => {
+                const el = document.querySelector(`[data-tab="${tab}"]`);
+                if (el) el.style.setProperty('display', 'none', 'important');
+            });
 
             const settingsBtn = document.getElementById('settingsTabBtn');
             if (settingsBtn) settingsBtn.style.display = 'none';
