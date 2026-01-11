@@ -1852,3 +1852,47 @@ body::before {
     opacity: 1;
     color: var(--neon-blue);
 }
+
+/* ==========================================
+   MOBILE CARD ENHANCEMENTS
+   ========================================== */
+
+.employee-card {
+    position: relative;
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.employee-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+}
+
+.employee-card .user-avatar {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+
+.employee-card h4 {
+    letter-spacing: -0.3px;
+}
+
+.employee-card .download-btn {
+    font-weight: 600;
+    transition: all 0.2s;
+}
+
+.employee-card .download-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(255,255,255,0.1);
+}
+
+.employee-card .download-btn:active {
+    transform: scale(0.95);
+}
+
+/* Mobile checkbox styling */
+@media (max-width: 900px) {
+    .user-checkbox {
+        width: 20px;
+        height: 20px;
+    }
+}

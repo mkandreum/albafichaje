@@ -46,7 +46,22 @@ class FichajeApp {
         this.entrySignaturePad = null;
         this.exitSignaturePad = null;
         window.app = this; // Expose for admin onclick handlers
+        this.registerServiceWorker();
         this.init();
+    }
+
+    registerServiceWorker() {
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(registration => {
+                        console.log('SW registered:', registration);
+                    })
+                    .catch(err => {
+                        console.log('SW registration failed:', err);
+                    });
+            });
+        }
     }
 
     async init() {
@@ -1064,42 +1079,43 @@ class FichajeApp {
         }).join('');
 
         // Generate Cards (Mobile)
-        const mobileCards = this.users.map(user => {
+        const mobileCards = users.map(user => {
             const lastFichaje = this.fichajes
                 .filter(f => f.userId === user.id)
                 .sort((a, b) => new Date(b.date) - new Date(a.date))[0];
 
+            const isSelected = this.selectedUsers && this.selectedUsers.has(user.id);
+
             return `
                 <div class="employee-card">
-                    <div style="display: flex; gap: 10px; align-items: flex-start;">
-                        <div class="user-avatar" style="width: 36px; height: 36px; font-size: 14px; flex-shrink: 0;">
+                    <div style="display: flex; gap: 12px; align-items: flex-start;">
+                        <input type="checkbox" class="user-checkbox" data-user-id="${user.id}" ${isSelected ? 'checked' : ''} style="margin-top: 4px;">
+                        <div class="user-avatar" style="width: 40px; height: 40px; font-size: 16px; flex-shrink: 0;">
                             ${(user.nombre[0] + (user.apellidos[0] || '')).toUpperCase()}
                         </div>
                         <div style="flex: 1; min-width: 0;">
-                            <h4 style="margin: 0 0 4px 0; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                            <h4 style="margin: 0 0 6px 0; font-size: 16px; font-weight: 600; color: #fff;">
                                 ${user.nombre} ${user.apellidos}
                             </h4>
-                            <p style="margin: 0; font-size: 11px; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                            <p style="margin: 0 0 4px 0; font-size: 13px; color: var(--text-secondary);">
                                 ${user.email}
                             </p>
-                            <p style="margin: 2px 0 0 0; font-size: 11px; color: var(--text-tertiary);">
-                                DNI: ${user.dni || '-'} | Último: ${lastFichaje ? lastFichaje.date : 'Nunca'}
+                            <p style="margin: 0; font-size: 12px; color: var(--text-tertiary);">
+                                DNI: ${user.dni || '-'} • Último: ${lastFichaje ? lastFichaje.date : 'Nunca'}
                             </p>
                         </div>
                     </div>
-                    <div style="display: flex; gap: 6px; margin-top: 8px;">
-                        <button class="download-btn" style="flex: 1; padding: 6px 8px; font-size: 11px;" onclick="window.app.resetUserPassword('${user.id}', '${user.email}')">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px;">
+                        <button class="download-btn" style="padding: 10px; font-size: 12px;" onclick="window.app.resetUserPassword('${user.id}', '${user.email}')">
                             🔑 Reset
                         </button>
-                        <button class="download-btn" style="flex: 1; padding: 6px 8px; font-size: 11px; background: rgba(255,59,48,0.2);" onclick="window.app.deleteUser('${user.id}', '${user.email}')">
+                        <button class="download-btn" style="padding: 10px; font-size: 12px; background: rgba(255,59,48,0.15);" onclick="window.app.deleteUser('${user.id}', '${user.email}')">
                             🗑️ Borrar
                         </button>
-                    </div>
-                    <div style="display: flex; gap: 6px; margin-top: 6px;">
-                        <button class="download-btn" style="flex: 1; padding: 6px 8px; font-size: 11px;" onclick="window.app.generatePDFForUser('${user.id}')">
+                        <button class="download-btn" style="padding: 10px; font-size: 12px;" onclick="window.app.generatePDFForUser('${user.id}')">
                             📄 PDF Mes
                         </button>
-                        <button class="download-btn" style="flex: 1; padding: 6px 8px; font-size: 11px; background: rgba(52,199,89,0.2);" onclick="window.app.generateAllPDFsForUser('${user.id}', '${user.nombre} ${user.apellidos}')">
+                        <button class="download-btn" style="padding: 10px; font-size: 12px; background: rgba(52,199,89,0.15);" onclick="window.app.generateAllPDFsForUser('${user.id}', '${user.nombre} ${user.apellidos}')">
                             📦 Histórico
                         </button>
                     </div>
