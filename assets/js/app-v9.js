@@ -177,7 +177,7 @@ class FichajeApp {
             this.showToast('Bienvenido, ' + (this.currentUser.nombre || 'Usuario'));
             this.loadTodayFichajes();
             this.renderCalendar();
-            if (this.currentUser.role === 'admin') {
+            if ((this.currentUser.role || '').toLowerCase() === 'admin') {
                 document.getElementById('adminTabBtn').style.display = 'flex';
             }
         } else {
@@ -231,7 +231,7 @@ class FichajeApp {
             this.showApp();
             this.renderCalendar();
             this.loadTodayFichajes();
-            if (this.currentUser.role === 'admin') {
+            if ((this.currentUser.role || '').toLowerCase() === 'admin') {
                 document.getElementById('adminTabBtn').style.display = 'flex';
             }
         } else {
@@ -258,16 +258,16 @@ class FichajeApp {
         this.showScreen('app');
         this.updateUserInfo();
 
-        if (this.currentUser.role === 'admin') {
+        if ((this.currentUser.role || '').toLowerCase() === 'admin') {
             // Hide employee-only tabs
             const tabsToHide = ['fichaje', 'historico', 'firma'];
             tabsToHide.forEach(tab => {
-                const el = document.querySelector(`[data-tab="${tab}"]`);
-                if (el) el.style.setProperty('display', 'none', 'important');
+                const els = document.querySelectorAll(`[data-tab="${tab}"]`);
+                els.forEach(el => el.style.setProperty('display', 'none', 'important'));
             });
 
             const settingsBtn = document.getElementById('settingsTabBtn');
-            if (settingsBtn) settingsBtn.style.display = 'none';
+            if (settingsBtn) settingsBtn.style.setProperty('display', 'none', 'important');
 
             // Show admin tabs
             const adminTab = document.getElementById('adminTabBtn');
@@ -327,7 +327,7 @@ class FichajeApp {
         }
 
         document.getElementById('userName').textContent = `${nombre} ${apellidos}`;
-        document.getElementById('userRole').textContent = this.currentUser.role === 'admin' ? 'Administrador' : 'Empleado';
+        document.getElementById('userRole').textContent = (this.currentUser.role || '').toLowerCase() === 'admin' ? 'Administrador' : 'Empleado';
     }
 
     async loadDashboardData() {
@@ -1062,7 +1062,7 @@ class FichajeApp {
 
     // Admin Implementation
     async loadAdminData() {
-        if (!this.currentUser || this.currentUser.role !== 'admin') return;
+        if (!this.currentUser || (this.currentUser.role || '').toLowerCase() !== 'admin') return;
         if (this.isLoadingAdminData) return;
 
         this.isLoadingAdminData = true;
