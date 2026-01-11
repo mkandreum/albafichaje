@@ -984,11 +984,6 @@ body::before {
 
 /* Mobile optimizations for main signature pad */
 @media (max-height: 800px) {
-    #signaturePad {
-        /* This ID selector might need to be on the CONTAINER class if the canvas is sized by JS */
-        /* But CSS can force container height */
-    }
-
     .signature-section {
         margin-top: 5px;
     }

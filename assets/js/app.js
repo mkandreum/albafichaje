@@ -194,8 +194,16 @@ class FichajeApp {
             afiliacion: this.sanitizeInput(document.getElementById('regAfiliacion').value)
         };
 
-        if (document.getElementById('regPassword').value !== document.getElementById('regPasswordConfirm').value) {
+        const password = document.getElementById('regPassword').value;
+
+        if (password !== document.getElementById('regPasswordConfirm').value) {
             this.showToast('Las contraseñas no coinciden', 'error');
+            return;
+        }
+
+        const validation = this.validatePassword(password);
+        if (!validation.valid) {
+            this.showToast(validation.errors.join(', '), 'error');
             return;
         }
 
@@ -213,8 +221,9 @@ class FichajeApp {
         e.preventDefault();
         const newPassword = document.getElementById('newPassword').value;
 
-        if (newPassword.length < 6) {
-            this.showToast('La contraseña debe tener al menos 6 caracteres', 'error');
+        const validation = this.validatePassword(newPassword);
+        if (!validation.valid) {
+            this.showToast(validation.errors.join(', '), 'error');
             return;
         }
 
@@ -413,8 +422,8 @@ class FichajeApp {
                     <div style="font-weight: 600; margin-bottom: 4px; color: var(--accent-primary);">
                         ${f.shift === 2 ? 'Turno 2 (Tarde)' : 'Turno 1 (Mañana)'}
                     </div>
-                    <div class="fichaje-time">Entrada: ${f.entryTime}</div>
-                    <div class="fichaje-time">Salida: ${f.exitTime || '-'}</div>
+                    <div class="fichaje-time">Entrada: ${this.sanitizeInput(f.entryTime)}</div>
+                    <div class="fichaje-time">Salida: ${this.sanitizeInput(f.exitTime) || '-'}</div>
                 </div>
             </div>
         `).join('');
@@ -588,7 +597,36 @@ class FichajeApp {
     }
     sanitizeInput(input) {
         if (typeof input !== 'string') return input;
-        return input.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+        const div = document.createElement('div');
+        div.textContent = input;
+        return div.innerHTML;
+    }
+
+    validatePassword(password) {
+        const errors = [];
+
+        if (password.length < 8) {
+            errors.push('Mínimo 8 caracteres');
+        }
+        if (!/[A-Z]/.test(password)) {
+            errors.push('Al menos una mayúscula');
+        }
+        if (!/[a-z]/.test(password)) {
+            errors.push('Al menos una minúscula');
+        }
+        if (!/[0-9]/.test(password)) {
+            errors.push('Al menos un número');
+        }
+
+        const commonPasswords = ['12345678', 'password', 'qwerty123', 'admin123', 'password123'];
+        if (commonPasswords.includes(password.toLowerCase())) {
+            errors.push('Contraseña demasiado común');
+        }
+
+        return {
+            valid: errors.length === 0,
+            errors: errors
+        };
     }
     setupInactivityMonitor() {
         const resetTimer = () => {
