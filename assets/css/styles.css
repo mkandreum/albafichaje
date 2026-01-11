@@ -181,8 +181,8 @@ body::before {
     }
 
     .tab-content {
-        padding-bottom: 80px;
-        /* reduced from ~130px */
+        padding-bottom: 130px !important;
+        /* Ensure content clears the nav bar completely */
     }
 }
 
@@ -562,10 +562,15 @@ body::before {
 #historicoTab .glass-card.content-card {
     display: flex;
     flex-direction: column;
-    padding: 8px;
+    padding: 16px;
+    /* Aumentado de 8px */
     margin-bottom: 10px;
     overflow: visible;
-    /* Keep visible for calendar */
+    background: var(--glass-panel-heavy);
+    /* Fondo más visible */
+    border: 1px solid var(--glass-border);
+    border-radius: 24px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
 }
 
 .calendar-header {
@@ -2270,6 +2275,7 @@ body::before {
         justify-content: flex-end;
     }
 }
+
 /* ==========================================
    PREMIUM VISUAL UPGRADE v2.0
    ========================================== */
@@ -2277,8 +2283,10 @@ body::before {
 /* 2. TABLAS FLOTANTES (Floating Rows) */
 .admin-table {
     border-collapse: separate !important;
-    border-spacing: 0 10px !important; /* Separación vertical */
-    margin-top: -10px; /* offset layout shift */
+    border-spacing: 0 10px !important;
+    /* Separación vertical */
+    margin-top: -10px;
+    /* offset layout shift */
 }
 
 .admin-table-container {
@@ -2298,7 +2306,8 @@ body::before {
 }
 
 .admin-table td {
-    background: rgba(30, 30, 30, 0.6); /* Fondo semi-transparente oscuro */
+    background: rgba(30, 30, 30, 0.6);
+    /* Fondo semi-transparente oscuro */
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     border-top: 1px solid rgba(255, 255, 255, 0.08);
@@ -2336,6 +2345,7 @@ body::before {
         opacity: 0;
         transform: translateY(20px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);
@@ -2344,18 +2354,19 @@ body::before {
 
 .animate-stagger {
     animation: slideUpFade 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
-    opacity: 0; /* Empieza invisible */
+    opacity: 0;
+    /* Empieza invisible */
 }
 
 /* 5. GLOW BUTTONS (Premium Feel) */
 .glass-button.primary {
     background: linear-gradient(135deg, rgba(10, 132, 255, 0.8), rgba(0, 86, 210, 0.8)) !important;
-    box-shadow: 
+    box-shadow:
         0 4px 15px rgba(10, 132, 255, 0.4),
         inset 0 1px 0 rgba(255, 255, 255, 0.3),
         inset 0 -1px 0 rgba(0, 0, 0, 0.2) !important;
     border: 1px solid rgba(255, 255, 255, 0.1);
-    text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
     position: relative;
     overflow: hidden;
 }
@@ -2363,8 +2374,11 @@ body::before {
 .glass-button.primary::after {
     content: '';
     position: absolute;
-    top: 0; left: 0; width: 100%; height: 100%;
-    background: radial-gradient(circle at center top, rgba(255,255,255,0.3), transparent 60%);
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle at center top, rgba(255, 255, 255, 0.3), transparent 60%);
     opacity: 0;
     transition: opacity 0.3s;
 }
@@ -2382,7 +2396,8 @@ body::before {
         left: 0 !important;
         width: 100% !important;
         height: auto;
-        padding: 24px 20px 40px 20px !important; /* Extra bottom padding for home indicator */
+        padding: 24px 20px 40px 20px !important;
+        /* Extra bottom padding for home indicator */
         border-radius: 32px 32px 0 0 !important;
         background: rgba(22, 22, 24, 0.95) !important;
         backdrop-filter: blur(40px) !important;
@@ -2391,8 +2406,10 @@ body::before {
         border-top: 1px solid rgba(255, 255, 255, 0.15) !important;
         transform: translateY(100%);
         transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1) !important;
-        animation: none !important; /* Disable default scale animation */
-        display: flex !important; /* Siempre flex, controlado por visibility/transform */
+        animation: none !important;
+        /* Disable default scale animation */
+        display: flex !important;
+        /* Siempre flex, controlado por visibility/transform */
         flex-direction: column;
         gap: 12px;
         z-index: 2000;
@@ -2407,8 +2424,11 @@ body::before {
     /* Backdrop overlay */
     .more-menu-backdrop {
         position: fixed;
-        top: 0; left: 0; width: 100%; height: 100%;
-        background: rgba(0,0,0,0.5);
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
         backdrop-filter: blur(4px);
         z-index: 1999;
         opacity: 0;
@@ -2416,8 +2436,9 @@ body::before {
         pointer-events: none;
     }
 
-    .more-menu.active + .more-menu-backdrop, /* If sibling */
-    body.menu-open .more-menu-backdrop { 
+    .more-menu.active+.more-menu-backdrop,
+    /* If sibling */
+    body.menu-open .more-menu-backdrop {
         opacity: 1;
         pointer-events: all;
     }
@@ -2447,4 +2468,5 @@ body::before {
         gap: 16px;
     }
 }
+
 /* v6.5 force deploy */
