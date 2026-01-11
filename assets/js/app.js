@@ -1582,4 +1582,75 @@ saveConfig() {
     localStorage.setItem('systemConfig', JSON.stringify(config));
     this.showToast('✅ Configuración guardada', 'success');
 }
+
+    // Quick fichaje function
+        async quickFichaje() {
+        const today = new Date().toISOString().split('T')[0];
+        const now = new Date();
+        const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+
+        // Check if there's already a fichaje today
+        const todayFichaje = this.fichajes.find(f => f.userId === this.currentUser.id && f.date === today);
+
+        if (!todayFichaje || !todayFichaje.entryTime) {
+            // Fichar entrada
+            document.getElementById('fichajeDate').value = today;
+            document.getElementById('entryTime').value = currentTime;
+            await this.handleFichajeSubmit(new Event('submit'));
+            this.updateBigFichajeButton();
+        } else if (!todayFichaje.exitTime) {
+            // Fichar salida
+            document.getElementById('fichajeDate').value = today;
+            document.getElementById('exitTime').value = currentTime;
+            await this.handleFichajeSubmit(new Event('submit'));
+            this.updateBigFichajeButton();
+        } else {
+            this.showToast('Ya has fichado entrada y salida hoy', 'info');
+        }
+}
+
+updateBigFichajeButton() {
+        const today = new Date().toISOString().split('T')[0];
+        const todayFichaje = this.fichajes.find(f => f.userId === this.currentUser.id && f.date === today);
+        const btn = document.getElementById('bigFichajeBtn');
+        const status = document.getElementById('fichajeStatus');
+
+        if (!btn) return;
+
+        if (!todayFichaje || !todayFichaje.entryTime) {
+            btn.innerHTML = '<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg><span>Fichar Entrada</span>';
+            btn.classList.remove('salida');
+            status.textContent = '⏰ Listo para fichar entrada';
+        } else if (!todayFichaje.exitTime) {
+            btn.innerHTML = '<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg><span>Fichar Salida</span>';
+            btn.classList.add('salida');
+            status.textContent = '✅ Entrada registrada - Ficha tu salida';
+        } else {
+            btn.disabled = true;
+            btn.style.opacity = '0.5';
+            status.textContent = '✅ Fichaje completo hoy';
+        }
+
+        // Update hours
+        this.updateTodayHours();
+}
+
+updateTodayHours() {
+        const today = new Date().toISOString().split('T')[0];
+        const todayFichaje = this.fichajes.find(f => f.userId === this.currentUser.id && f.date === today);
+        const hoursEl = document.getElementById('todayHours');
+
+        if (!hoursEl) return;
+
+        if (todayFichaje && todayFichaje.entryTime && todayFichaje.exitTime) {
+            const [entryH, entryM] = todayFichaje.entryTime.split(':').map(Number);
+            const [exitH, exitM] = todayFichaje.exitTime.split(':').map(Number);
+            const totalMinutes = (exitH * 60 + exitM) - (entryH * 60 + entryM);
+            const hours = Math.floor(totalMinutes / 60);
+            const minutes = totalMinutes % 60;
+            hoursEl.textContent = `${hours}h ${String(minutes).padStart(2, '0')}m`;
+        } else {
+            hoursEl.textContent = '0h 00m';
+        }
+}
 }

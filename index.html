@@ -205,7 +205,34 @@
             <!-- Fichaje Tab -->
             <div id="fichajeTab" class="tab-content active">
                 <div class="glass-card content-card">
-                    <h2 class="section-title">Registrar Fichaje</h2>
+                    <h2 class="section-title">Control de Fichaje</h2>
+
+                    <!-- Status Card -->
+                    <div class="fichaje-status-card glass-card"
+                        style="padding: 24px; margin-bottom: 24px; text-align: center;">
+                        <div id="fichajeStatus"
+                            style="font-size: 18px; font-weight: 600; margin-bottom: 16px; color: var(--text-primary);">
+                            ⏰ Listo para fichar
+                        </div>
+                        <div id="todayHours"
+                            style="font-size: 32px; font-weight: 700; margin-bottom: 8px; background: linear-gradient(90deg, #0A84FF, #BF5AF2); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+                            0h 00m
+                        </div>
+                        <div style="font-size: 13px; color: var(--text-tertiary);">Horas trabajadas hoy</div>
+                    </div>
+
+                    <!-- Big Action Button -->
+                    <button id="bigFichajeBtn" class="big-fichaje-btn" onclick="window.app.quickFichaje()">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <polyline points="12 6 12 12 16 14"></polyline>
+                        </svg>
+                        <span>Fichar Entrada</span>
+                    </button>
+
+                    <div style="height: 32px;"></div>
+                    <h3 style="margin: 0 0 16px 0; font-size: 16px; font-weight: 600;">Registro Manual</h3>
                     <div class="date-selector-container">
                         <label>Fecha del Fichaje</label>
                         <div class="glass-input date-input-wrapper">
@@ -472,6 +499,44 @@
                 </div>
             </div>
 
+            <!-- Mi Dashboard Tab (Employee only) -->
+            <div id="dashboardTab" class="tab-content">
+                <div class="glass-card content-card">
+                    <h2 class="section-title">📊 Mi Dashboard</h2>
+                    <div class="dashboard-grid">
+                        <div class="stat-card glass-card" style="padding: 20px;">
+                            <h3 style="font-size: 14px; color: var(--text-tertiary); margin: 0 0 12px 0;">Horas Este Mes
+                            </h3>
+                            <div id="monthHours"
+                                style="font-size: 36px; font-weight: 700; background: linear-gradient(90deg, #0A84FF, #BF5AF2); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+                                0h</div>
+                        </div>
+                        <div class="stat-card glass-card" style="padding: 20px;">
+                            <h3 style="font-size: 14px; color: var(--text-tertiary); margin: 0 0 12px 0;">Promedio
+                                Diario</h3>
+                            <div id="avgDaily" style="font-size: 36px; font-weight: 700; color: #30d158;">0h</div>
+                        </div>
+                        <div class="stat-card glass-card" style="padding: 20px;">
+                            <h3 style="font-size: 14px; color: var(--text-tertiary); margin: 0 0 12px 0;">Días
+                                Trabajados</h3>
+                            <div id="daysWorked" style="font-size: 36px; font-weight: 700; color: #64D2FF;">0</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mis Documentos Tab (Employee only) -->
+            <div id="documentosTab" class="tab-content">
+                <div class="glass-card content-card">
+                    <h2 class="section-title">📄 Mis Documentos</h2>
+                    <div id="documentsList">
+                        <p style="text-align: center; color: var(--text-tertiary); padding: 40px;">
+                            Aquí aparecerán tus PDFs generados
+                        </p>
+                    </div>
+                </div>
+            </div>
+
             <!-- Settings Tab -->
             <div id="settingsTab" class="tab-content">
                 <div class="glass-card content-card">
@@ -536,6 +601,24 @@
                         <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z" />
                     </svg>
                     <span>Firma</span>
+                </button>
+                <button class="tab-btn" data-tab="dashboard" id="dashboardTabBtn">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="3" width="7" height="7"></rect>
+                        <rect x="14" y="3" width="7" height="7"></rect>
+                        <rect x="14" y="14" width="7" height="7"></rect>
+                        <rect x="3" y="14" width="7" height="7"></rect>
+                    </svg>
+                    <span>Dashboard</span>
+                </button>
+                <button class="tab-btn" data-tab="documentos" id="documentosTabBtn">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                        <line x1="16" y1="13" x2="8" y2="13"></line>
+                        <line x1="16" y1="17" x2="8" y2="17"></line>
+                    </svg>
+                    <span>Docs</span>
                 </button>
                 <button class="tab-btn" data-tab="settings">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
