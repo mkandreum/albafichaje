@@ -2,6 +2,22 @@
 class ApiService {
     constructor(baseUrl = 'api') {
         this.baseUrl = baseUrl;
+        this.csrfToken = null;
+    }
+
+    async getCsrfToken() {
+        if (!this.csrfToken) {
+            try {
+                const response = await fetch(`${this.baseUrl}/csrf-token.php`);
+                const data = await response.json();
+                if (data.success) {
+                    this.csrfToken = data.token;
+                }
+            } catch (error) {
+                console.warn('CSRF token fetch failed:', error);
+            }
+        }
+        return this.csrfToken;
     }
 
     async request(endpoint, method = 'GET', data = null) {
@@ -9,6 +25,15 @@ class ApiService {
             method,
             headers: { 'Content-Type': 'application/json' }
         };
+
+        // Add CSRF token for state-changing operations
+        if (['POST', 'PUT', 'DELETE'].includes(method)) {
+            const token = await this.getCsrfToken();
+            if (token) {
+                config.headers['X-CSRF-Token'] = token;
+            }
+        }
+
         if (data) config.body = JSON.stringify(data);
         try {
             const response = await fetch(`${this.baseUrl}/${endpoint}`, config);
