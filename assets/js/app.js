@@ -26,11 +26,17 @@ class ApiService {
             headers: { 'Content-Type': 'application/json' }
         };
 
-        // Add CSRF token for state-changing operations
+        // Add CSRF token for state-changing operations (optional for now)
+        // TODO: Make mandatory once backend validation is implemented
         if (['POST', 'PUT', 'DELETE'].includes(method)) {
-            const token = await this.getCsrfToken();
-            if (token) {
-                config.headers['X-CSRF-Token'] = token;
+            try {
+                const token = await this.getCsrfToken();
+                if (token) {
+                    config.headers['X-CSRF-Token'] = token;
+                }
+            } catch (error) {
+                // Continue without CSRF token if fetch fails
+                console.warn('CSRF token not available, continuing without it');
             }
         }
 
