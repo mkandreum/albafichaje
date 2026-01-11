@@ -2354,8 +2354,7 @@ body::before {
 
 .animate-stagger {
     animation: slideUpFade 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
-    opacity: 0;
-    /* Empieza invisible */
+    /* opacity: 0; REMOVED to prevent disappearance issues */
 }
 
 /* 5. GLOW BUTTONS (Premium Feel) */
