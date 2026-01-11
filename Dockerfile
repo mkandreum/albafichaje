@@ -18,3 +18,8 @@ RUN mkdir -p data/signatures assets/uploads && \
 
 # Expose port 80
 EXPOSE 80
+
+# Copy and set entrypoint
+COPY entrypoint.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/entrypoint.sh
+ENTRYPOINT ["entrypoint.sh"]

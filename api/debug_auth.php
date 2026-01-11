@@ -2,6 +2,9 @@
 // api/debug_auth.php
 ini_set('display_errors', 1);
 error_reporting(E_ALL);
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 
 echo "<h1>Debug Auth & Permissions</h1>";
 
@@ -39,7 +42,7 @@ if (file_exists($usersFile)) {
 }
 
 echo "<h2>Session Test</h2>";
-session_start();
+// session_start() moved to top
 $_SESSION['debug_test'] = 'works';
 echo "Session ID: " . session_id() . "<br>";
 echo "Session Val: " . $_SESSION['debug_test'] . "<br>";
