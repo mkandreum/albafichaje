@@ -42,7 +42,10 @@ function handleGetUserFichajes($userId)
 
 function handleGetAllFichajes()
 {
-    requireAdmin(); // Check admin role
+    // Check if user is admin
+    if ($_SESSION['user']['role'] !== 'admin') {
+        response(['success' => false, 'message' => 'Acceso denegado'], 403);
+    }
 
     $fichajes = readJson(FICHAJES_FILE);
     response(['success' => true, 'fichajes' => $fichajes]);
@@ -50,8 +53,6 @@ function handleGetAllFichajes()
 
 function handleSaveFichaje()
 {
-    validateCsrfToken(); // CSRF protection
-
     $input = getInput();
 
     // Sanitize inputs

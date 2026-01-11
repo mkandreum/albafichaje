@@ -67,6 +67,7 @@ class FichajeApp {
         const session = await this.api.checkSession();
         if (session.success) {
             this.currentUser = session.user;
+            this.currentUser = session.user;
 
             if (this.currentUser.forcePasswordChange) {
                 this.showScreen('changePassword');
@@ -76,34 +77,22 @@ class FichajeApp {
             await this.loadData();
             this.showApp();
             this.renderCalendar();
+            this.loadTodayFichajes();
+            this.updateTabIndicator();
 
             // Set default date to today
             const today = new Date().toISOString().split('T')[0];
             document.getElementById('fichajeDate').value = today;
 
             if (this.currentUser.role === 'admin') {
-                // ADMIN LOGIC:
-                // 1. Show Admin Tab Button
                 document.getElementById('adminTabBtn').style.display = 'flex';
-
-                // 2. Hide Fichaje Tab Button & Content (Admins don't clock in)
-                const fichajeBtn = document.querySelector('.tab-btn[data-tab="fichaje"]');
-                if (fichajeBtn) fichajeBtn.style.display = 'none';
-
-                // 3. Remove Settings Tab (Admins manage via clean interface if needed, or keep minimal)
+                // Remove settings tab button and content for admins
                 const settingsBtn = document.querySelector('.tab-btn[data-tab="settings"]');
                 if (settingsBtn) settingsBtn.remove();
+
                 const settingsContent = document.getElementById('settingsTab');
                 if (settingsContent) settingsContent.remove();
-
-                // 4. Default to Admin Tab
-                this.switchTab('admin');
-            } else {
-                // EMPLOYEE LOGIC:
-                this.loadTodayFichajes();
-                this.updateTabIndicator();
             }
-
         } else {
             this.showScreen('login');
         }
@@ -260,22 +249,15 @@ class FichajeApp {
     showApp() {
         this.showScreen('app');
         this.updateUserInfo();
-
+        this.switchTab('fichaje');
+        this.setupInactivityMonitor();
+        setTimeout(() => this.updateTabIndicator(), 50);
         if (this.currentUser.role === 'admin') {
             document.getElementById('adminTabBtn').style.display = 'flex';
             this.loadAdminData();
-            this.switchTab('admin'); // Explicitly switch to Admin
+            setTimeout(() => this.updateTabIndicator(), 100);
         } else {
             document.getElementById('adminTabBtn').style.display = 'none';
-            this.switchTab('fichaje'); // Default for employees
-        }
-
-        this.setupInactivityMonitor();
-        setTimeout(() => this.updateTabIndicator(), 50);
-
-        // Add desktop class helper
-        if (window.innerWidth >= 1024) {
-            document.body.classList.add('is-desktop');
         }
     }
 

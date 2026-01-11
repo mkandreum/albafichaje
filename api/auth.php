@@ -38,8 +38,6 @@ switch ($action) {
 
 function handleChangePassword()
 {
-    validateCsrfToken(); // CSRF protection
-
     if (!isset($_SESSION['user'])) {
         response(['success' => false, 'message' => 'No autorizado'], 401);
     }
@@ -81,8 +79,10 @@ function handleChangePassword()
 
 function handleAdminResetPassword()
 {
-    validateCsrfToken(); // CSRF protection
-    requireAdmin(); // Check admin role
+    // Check if user is admin
+    if (!isset($_SESSION['user']) || $_SESSION['user']['role'] !== 'admin') {
+        response(['success' => false, 'message' => 'Solo administradores pueden resetear contraseñas'], 403);
+    }
 
     $input = getInput();
     $userId = filter_var($input['userId'] ?? '', FILTER_SANITIZE_FULL_SPECIAL_CHARS);
@@ -114,8 +114,10 @@ function handleAdminResetPassword()
 
 function handleAdminDeleteUser()
 {
-    validateCsrfToken(); // CSRF protection
-    requireAdmin(); // Check admin role
+    // Check if user is admin
+    if (!isset($_SESSION['user']) || $_SESSION['user']['role'] !== 'admin') {
+        response(['success' => false, 'message' => 'Acceso denegado'], 403);
+    }
 
     $input = getInput();
     $userId = $input['userId'] ?? '';
@@ -161,8 +163,6 @@ function handleAdminDeleteUser()
 
 function handleUpdateProfile()
 {
-    validateCsrfToken(); // CSRF protection
-
     // Check if user is logged in
     if (!isset($_SESSION['user'])) {
         response(['success' => false, 'message' => 'No autenticado'], 401);
@@ -210,8 +210,6 @@ function handleUpdateProfile()
 
 function handleLogin()
 {
-    validateCsrfToken(); // CSRF protection
-
     // Basic rate limiting - max 5 attempts per minute per IP
     $ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
     $rateLimitKey = "login_attempts_$ip";
@@ -270,8 +268,6 @@ function handleLogin()
 
 function handleRegister()
 {
-    validateCsrfToken(); // CSRF protection
-
     $input = getInput();
 
     $nombre = trim($input['nombre'] ?? '');
@@ -345,7 +341,6 @@ function handleRegister()
 
 function handleLogout()
 {
-    validateCsrfToken(); // CSRF protection
     session_destroy();
     response(['success' => true, 'message' => 'Sesión cerrada']);
 }
@@ -361,7 +356,10 @@ function handleCheckSession()
 
 function handleGetAllUsers()
 {
-    requireAdmin(); // Check admin role
+    // Check if user is admin
+    if (!isset($_SESSION['user']) || $_SESSION['user']['role'] !== 'admin') {
+        response(['success' => false, 'message' => 'Acceso denegado'], 403);
+    }
 
     $users = readJson(USERS_FILE);
 
