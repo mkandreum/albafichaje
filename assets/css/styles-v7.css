@@ -2217,8 +2217,8 @@ body::before {
 }
 
 .more-trigger {
-    display: none !important;
-    /* Hidden on desktop by default */
+    display: flex;
+    /* Always visible */
 }
 
 @keyframes scaleIn {
