@@ -2161,3 +2161,35 @@ body::before {
         display: flex !important;
     }
 }
+
+/* Admin Mobile Optimization */
+@media (max-width: 768px) {
+    .stats-grid {
+        grid-template-columns: 1fr !important;
+    }
+    
+    .admin-toolbar {
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .search-container {
+        width: 100%;
+    }
+    
+    .bulk-actions-bar {
+        width: 100%;
+        overflow-x: auto;
+    }
+
+    .employee-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+    .employee-actions {
+        width: 100%;
+        justify-content: flex-end;
+    }
+}

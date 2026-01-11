@@ -303,8 +303,6 @@ class FichajeApp {
             // Show admin tabs
             document.getElementById('adminTabBtn').style.display = 'flex';
             document.getElementById('estadisticasTabBtn').style.display = 'flex';
-            document.getElementById('reportesTabBtn').style.display = 'flex';
-            document.getElementById('configuracionTabBtn').style.display = 'flex';
 
             // Switch to admin tab by default
             this.switchTab('admin');
@@ -321,8 +319,6 @@ class FichajeApp {
             // Hide admin tabs
             document.getElementById('adminTabBtn').style.display = 'none';
             document.getElementById('estadisticasTabBtn').style.display = 'none';
-            document.getElementById('reportesTabBtn').style.display = 'none';
-            document.getElementById('configuracionTabBtn').style.display = 'none';
 
             // Switch to fichaje tab by default
             this.switchTab('fichaje');
