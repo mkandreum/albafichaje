@@ -1,9 +1,9 @@
-const CACHE_NAME = 'albafichaje-v8.8';
+const CACHE_NAME = 'albafichaje-v9.0';
 const urlsToCache = [
     '/',
     '/index.html',
     '/assets/css/styles-v7.css',
-    '/assets/js/app-v8.js',
+    '/assets/js/app-v9.js',
     '/manifest.json',
     '/assets/icons/icon-192.png',
     '/assets/icons/icon-512.png'

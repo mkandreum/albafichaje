@@ -54,29 +54,10 @@ class FichajeApp {
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('/sw.js')
-                    .then(registration => {
-                        this.logToScreen('SW registered');
-                    })
-                    .catch(err => {
-                        this.logToScreen('SW failed: ' + err, true);
-                    });
+                    .then(r => console.log('SW registered'))
+                    .catch(e => console.log('SW failed', e));
             });
         }
-    }
-
-    logToScreen(msg, isError = false) {
-        console.log(msg);
-        let debugDiv = document.getElementById('debugLogger');
-        if (!debugDiv) {
-            debugDiv = document.createElement('div');
-            debugDiv.id = 'debugLogger';
-            debugDiv.style = 'position:fixed;top:0;left:0;width:100%;z-index:9999;background:rgba(0,0,0,0.8);color:#0f0;font-size:10px;padding:2px;pointer-events:none;max-height:50px;overflow:hidden;line-height:1.2;';
-            document.body.appendChild(debugDiv);
-        }
-        const line = document.createElement('div');
-        if (isError) line.style.color = '#f00';
-        line.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
-        debugDiv.prepend(line);
     }
 
     async init() {
@@ -87,33 +68,12 @@ class FichajeApp {
         const session = await this.api.checkSession();
         if (session.success) {
             this.currentUser = session.user;
-            this.currentUser = session.user;
-
-            if (this.currentUser.forcePasswordChange) {
-                this.showScreen('changePassword');
-                return; /* Stop loading app */
-            }
-
             await this.loadData();
             this.showApp();
             this.renderCalendar();
             this.loadTodayFichajes();
             this.updateTabIndicator();
-
-            this.updateTabIndicator();
-
-            // Set default date to today
             this.updateCurrentDate();
-
-            if (this.currentUser.role === 'admin') {
-                document.getElementById('adminTabBtn').style.display = 'flex';
-                // Remove settings tab button and content for admins
-                const settingsBtn = document.querySelector('.tab-btn[data-tab="settings"]');
-                if (settingsBtn) settingsBtn.remove();
-
-                const settingsContent = document.getElementById('settingsTab');
-                if (settingsContent) settingsContent.remove();
-            }
         } else {
             this.showScreen('login');
         }
@@ -127,99 +87,35 @@ class FichajeApp {
     }
 
     setupEventListeners() {
-        this.logToScreen('Attaching listeners...');
+        document.getElementById('loginForm').addEventListener('submit', (e) => this.handleLogin(e));
+        document.getElementById('registerForm').addEventListener('submit', (e) => this.handleRegister(e));
+        document.getElementById('changePasswordForm').addEventListener('submit', (e) => this.handleChangePassword(e));
+        document.getElementById('showRegisterBtn').addEventListener('click', () => this.showScreen('register'));
+        document.getElementById('backToLoginBtn').addEventListener('click', () => this.showScreen('login'));
+        document.getElementById('logoutBtn').addEventListener('click', () => this.handleLogout());
 
-        const safeAddListener = (id, event, callback) => {
-            const el = document.getElementById(id);
-            if (el) el.addEventListener(event, callback);
-            else this.logToScreen(`Warning: #${id} not found`, true);
-        };
+        document.getElementById('registerFichajeBtn').addEventListener('click', () => this.registerFichaje());
+        document.getElementById('clearEntrySig').addEventListener('click', () => this.clearDailyPad('entry'));
+        document.getElementById('clearExitSig').addEventListener('click', () => this.clearDailyPad('exit'));
 
-        try {
-            safeAddListener('loginForm', 'submit', (e) => this.handleLogin(e));
-            safeAddListener('registerForm', 'submit', (e) => this.handleRegister(e));
-            safeAddListener('changePasswordForm', 'submit', (e) => this.handleChangePassword(e));
-            safeAddListener('showRegisterBtn', 'click', () => this.showScreen('register'));
-            safeAddListener('backToLoginBtn', 'click', () => this.showScreen('login'));
-            safeAddListener('logoutBtn', 'click', () => this.handleLogout());
-            safeAddListener('registerFichajeBtn', 'click', () => this.registerFichaje());
-            safeAddListener('clearEntrySig', 'click', () => this.clearDailyPad('entry'));
-            safeAddListener('clearExitSig', 'click', () => this.clearDailyPad('exit'));
-            safeAddListener('prevMonthBtn', 'click', () => this.changeMonth(-1));
-            safeAddListener('nextMonthBtn', 'click', () => this.changeMonth(1));
-            safeAddListener('clearSignatureBtn', 'click', () => this.clearMainSignature());
-            safeAddListener('generatePdfBtn', 'click', () => this.generatePDF());
-            safeAddListener('sharePdfBtn', 'click', () => this.sharePDF());
-            safeAddListener('settingsForm', 'submit', (e) => this.handleSaveSettings(e));
+        document.getElementById('prevMonthBtn').addEventListener('click', () => this.changeMonth(-1));
+        document.getElementById('nextMonthBtn').addEventListener('click', () => this.changeMonth(1));
 
-            // Create backdrop for mobile menu
-            let backdrop = document.querySelector('.more-menu-backdrop');
-            if (!backdrop) {
-                backdrop = document.createElement('div');
-                backdrop.className = 'more-menu-backdrop';
-                document.body.appendChild(backdrop);
-            }
+        document.getElementById('clearSignatureBtn').addEventListener('click', () => this.clearMainSignature());
+        document.getElementById('generatePdfBtn').addEventListener('click', () => this.generatePDF());
+        document.getElementById('sharePdfBtn').addEventListener('click', () => this.sharePDF());
 
-            // Tab switching (Bar and Menu)
-            document.querySelectorAll('.tab-btn, .more-menu-item').forEach(btn => {
-                if (!btn.classList.contains('more-trigger')) {
-                    btn.addEventListener('click', (e) => {
-                        const tab = e.currentTarget.getAttribute('data-tab');
-                        if (tab) {
-                            this.switchTab(tab);
-                            this.closeMoreMenu();
-                        }
-                    });
-                }
+        document.getElementById('settingsForm').addEventListener('submit', (e) => this.handleSaveSettings(e));
+
+        // Simple Tab Switching
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const tab = e.currentTarget.getAttribute('data-tab');
+                if (tab) this.switchTab(tab);
             });
+        });
 
-            // More Menu Logic (Bottom Sheet)
-            const moreBtn = document.getElementById('moreTabBtn');
-            const moreMenu = document.getElementById('moreMenu');
-
-            if (moreBtn && moreMenu) {
-                this.logToScreen('More button found, setting onclick');
-                moreBtn.onclick = (e) => {
-                    this.logToScreen('More button CLICKED');
-                    e.preventDefault();
-                    e.stopPropagation();
-                    const isOpening = !moreMenu.classList.contains('active');
-                    if (isOpening) this.openMoreMenu();
-                    else this.closeMoreMenu();
-                };
-                backdrop.onclick = () => this.closeMoreMenu();
-                moreMenu.querySelectorAll('.more-menu-item').forEach(btn => {
-                    btn.onclick = () => {
-                        const tabId = btn.dataset.tab;
-                        if (tabId) this.switchTab(tabId);
-                        this.closeMoreMenu();
-                    };
-                });
-                moreMenu.onclick = (e) => e.stopPropagation();
-            } else {
-                this.logToScreen('Error: moreTabBtn or moreMenu MISSING', true);
-            }
-
-            window.addEventListener('resize', () => this.updateTabIndicator());
-
-            window.addEventListener('beforeinstallprompt', (e) => {
-                e.preventDefault();
-                this.deferredPrompt = e;
-                const installBtn = document.getElementById('pwaInstallBtn');
-                if (installBtn) {
-                    installBtn.style.display = 'flex';
-                    installBtn.onclick = () => {
-                        this.deferredPrompt.prompt();
-                        this.deferredPrompt.userChoice.then((choiceResult) => {
-                            if (choiceResult.outcome === 'accepted') installBtn.style.display = 'none';
-                            this.deferredPrompt = null;
-                        });
-                    };
-                }
-            });
-        } catch (err) {
-            this.logToScreen('Critical error in listeners: ' + err, true);
-        }
+        window.addEventListener('resize', () => this.updateTabIndicator());
     }
 
     openMoreMenu() {
@@ -245,18 +141,7 @@ class FichajeApp {
     }
 
     updateTabIndicator() {
-        let activeBtn = document.querySelector('.tab-btn.active');
-        const moreBtn = document.getElementById('moreTabBtn');
-        const moreMenu = document.getElementById('moreMenu');
-
-        // Check if active tab is inside the more menu (hidden in bar)
-        if (activeBtn && getComputedStyle(activeBtn).display === 'none' && moreBtn && getComputedStyle(moreBtn).display !== 'none') {
-            activeBtn = moreBtn;
-            moreBtn.classList.add('active'); // Highlight more button
-        } else {
-            if (moreBtn) moreBtn.classList.remove('active'); // Unhighlight if normal tab selected
-        }
-
+        const activeBtn = document.querySelector('.tab-btn.active');
         const indicator = document.getElementById('tabIndicator');
         const container = document.querySelector('.tabs-container');
 
@@ -369,62 +254,36 @@ class FichajeApp {
     }
 
     showApp() {
-        this.logToScreen('Showing App screen');
         this.showScreen('app');
         this.updateUserInfo();
 
-        try {
-            if (this.currentUser.role === 'admin') {
-                this.logToScreen('User is Admin');
-                // Hide employee-only tabs for admin (Safe Check)
-                const safeHide = (sel) => { let el = document.querySelector(sel); if (el) el.style.display = 'none'; };
+        if (this.currentUser.role === 'admin') {
+            // Hide employee-only tabs
+            document.querySelector('[data-tab="fichaje"]').style.display = 'none';
+            const settingsBtn = document.getElementById('settingsTabBtn');
+            if (settingsBtn) settingsBtn.style.display = 'none';
 
-                safeHide('[data-tab="fichaje"]');
-                safeHide('[data-tab="firma"]');
-                safeHide('[data-tab="historico"]');
-                safeHide('[data-tab="dashboard"]');
-                safeHide('[data-tab="documentos"]');
+            // Show admin tabs
+            const adminTab = document.getElementById('adminTabBtn');
+            if (adminTab) adminTab.style.display = 'flex';
+            const statsTab = document.getElementById('estadisticasTabBtn');
+            if (statsTab) statsTab.style.display = 'flex';
 
-                const settingsBtn = document.getElementById('settingsTabBtn');
-                if (settingsBtn) settingsBtn.style.display = 'none';
+            this.switchTab('admin');
+            this.loadAdminData();
+        } else {
+            // Show employee tabs
+            document.querySelector('[data-tab="fichaje"]').style.display = 'flex';
+            const settingsBtn = document.getElementById('settingsTabBtn');
+            if (settingsBtn) settingsBtn.style.display = 'flex';
 
-                // Show admin tabs
-                const adminTab = document.getElementById('adminTabBtn');
-                if (adminTab) adminTab.style.display = 'flex';
-                const statsTab = document.getElementById('estadisticasTabBtn');
-                if (statsTab) statsTab.style.display = 'flex';
+            // Hide admin tabs
+            const adminTab = document.getElementById('adminTabBtn');
+            if (adminTab) adminTab.style.display = 'none';
+            const statsTab = document.getElementById('estadisticasTabBtn');
+            if (statsTab) statsTab.style.display = 'none';
 
-                // IMPORTANT: Let Admin see More button for debugging
-                const moreBtn = document.getElementById('moreTabBtn');
-                if (moreBtn) moreBtn.style.removeProperty('display');
-
-                this.switchTab('admin');
-                this.loadAdminData();
-            } else {
-                this.logToScreen('User is Employee');
-                const safeShow = (sel) => { let el = document.querySelector(sel); if (el) el.style.display = 'flex'; };
-
-                safeShow('[data-tab="fichaje"]');
-                safeShow('[data-tab="firma"]');
-                safeShow('[data-tab="historico"]');
-                safeShow('[data-tab="dashboard"]');
-                safeShow('[data-tab="documentos"]');
-
-                const settingsBtn = document.getElementById('settingsTabBtn');
-                if (settingsBtn) settingsBtn.style.display = 'flex';
-
-                const moreBtn = document.getElementById('moreTabBtn');
-                if (moreBtn) moreBtn.style.removeProperty('display');
-
-                const adminTab = document.getElementById('adminTabBtn');
-                if (adminTab) adminTab.style.display = 'none';
-                const statsTab = document.getElementById('estadisticasTabBtn');
-                if (statsTab) statsTab.style.display = 'none';
-
-                this.switchTab('fichaje');
-            }
-        } catch (err) {
-            this.logToScreen('Error in role setup: ' + err, true);
+            this.switchTab('fichaje');
         }
 
         this.setupInactivityMonitor();
