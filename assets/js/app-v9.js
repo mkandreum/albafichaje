@@ -362,8 +362,12 @@ class FichajeApp {
         if (!this.currentUser) return;
         const dateInput = document.getElementById('fichajeDate');
         const date = dateInput ? dateInput.value : new Date().toISOString().split('T')[0];
-        const entryTime = document.getElementById('entryTime').value;
-        const exitTime = document.getElementById('exitTime').value;
+        let entryTime = document.getElementById('entryTime').value;
+        let exitTime = document.getElementById('exitTime').value;
+
+        // Sanitize times to HH:MM (remove seconds if present)
+        if (entryTime && entryTime.length > 5) entryTime = entryTime.substring(0, 5);
+        if (exitTime && exitTime.length > 5) exitTime = exitTime.substring(0, 5);
 
         if (!entryTime) {
             this.showToast('Debes indicar al menos la hora de entrada', 'error');
