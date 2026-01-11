@@ -324,12 +324,32 @@
 
                     <div class="admin-stats">
                         <div class="stat-card glass-card">
-                            <h3 id="totalEmployees">0</h3>
-                            <p>Empleados</p>
+                            <div class="stat-icon employees">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                                    <circle cx="9" cy="7" r="4"></circle>
+                                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                                    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                                </svg>
+                            </div>
+                            <div>
+                                <h3 id="totalEmployees">0</h3>
+                                <p>Empleados</p>
+                            </div>
                         </div>
                         <div class="stat-card glass-card">
-                            <h3 id="todayFichajes">0</h3>
-                            <p>Fichajes Hoy</p>
+                            <div class="stat-icon fichajes">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <polyline points="9 11 12 14 22 4"></polyline>
+                                    <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+                                </svg>
+                            </div>
+                            <div>
+                                <h3 id="todayFichajes">0</h3>
+                                <p>Fichajes Hoy</p>
+                            </div>
                         </div>
                     </div>
 
@@ -425,8 +445,50 @@
     <!-- Toast Notification -->
     <div id="toast" class="toast glass-card"></div>
 
-    <!-- Confirmation Modal -->
-    <div id="confirmModal" class="modal">
+
+    <!-- ============================================ -->
+    <!-- NEW: Admin Controls & Toolbar -->
+    <!-- ============================================ -->
+    <div id="adminControls" class="admin-controls glass-card"
+        style="display: none; margin-bottom: 20px; align-items: center; padding: 12px 20px; gap: 15px;">
+        <div class="search-wrapper" style="flex: 1; position: relative;">
+            <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <input type="text" id="adminSearchInput" placeholder="Buscar empleado..." class="glass-input search-input">
+        </div>
+        <!-- Bulk Actions Toolbar (Floating) -->
+        <div id="bulkActionsToolbar" class="bulk-toolbar" style="display: none;">
+            <span id="selectedCount" style="font-size: 13px; font-weight: 600; color: #fff;">0 seleccionados</span>
+            <div class="bulk-actions">
+                <button id="btnBulkPdf" class="action-icon-btn" title="Descargar PDF Mensual">
+                    📄
+                </button>
+                <button id="btnBulkPdfHist" class="action-icon-btn" title="Descargar Histórico">
+                    📦
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================ -->
+    <!-- NEW: Generic Glass Modal -->
+    <!-- ============================================ -->
+    <div id="customModal" class="modal-overlay">
+        <div class="glass-modal animate-pop-in">
+            <h3 id="customModalTitle" class="modal-title">Título</h3>
+            <p id="customModalMessage" class="modal-message">Mensaje...</p>
+            <div class="modal-actions">
+                <button id="customModalCancel" class="modal-btn cancel">Cancelar</button>
+                <button id="customModalConfirm" class="modal-btn confirm">Confirmar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Existing Modal (Keep for legacy compatibility until fully migrated if needed) -->
+    <div id="confirmModal" class="modal-overlay">
         <div class="modal-content glass-card">
             <h3 class="modal-title">Registro Existente</h3>
             <p class="modal-body">Ya existe un fichaje para hoy. ¿Deseas reemplazarlo con los nuevos datos?</p>

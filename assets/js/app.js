@@ -45,6 +45,16 @@ class FichajeApp {
         this.signaturePad = null;
         this.entrySignaturePad = null;
         this.exitSignaturePad = null;
+
+        // Admin State
+        this.adminState = {
+            searchTerm: '',
+            sortCol: 'date', // 'name', 'dni', 'date'
+            sortAsc: false,
+            selectedUsers: new Set(),
+            isLoading: false
+        };
+
         window.app = this; // Expose for admin onclick handlers
         this.init();
     }
@@ -923,19 +933,149 @@ class FichajeApp {
         document.getElementById('totalEmployees').textContent = totalEmployees;
         document.getElementById('todayFichajes').textContent = todayFichajesCount;
 
-        // Render List
-        const list = document.getElementById('employeeList');
 
-        // Generate Table Rows (Desktop)
-        const tableRows = this.users.map(user => {
-            const lastFichaje = this.fichajes
-                .filter(f => f.userId === user.id)
-                .sort((a, b) => new Date(b.date) - new Date(a.date))[0];
+        // ==========================================
+        // ADMIN ENHANCEMENTS (Sort, Filter, Modal)
+        // ==========================================
 
-            return `
+        toggleSort(col) {
+            if (this.adminState.sortCol === col) {
+                this.adminState.sortAsc = !this.adminState.sortAsc;
+            } else {
+                this.adminState.sortCol = col;
+                this.adminState.sortAsc = true;
+            }
+            this.loadAdminData();
+        }
+
+        handleSearch(e) {
+            this.adminState.searchTerm = e.target.value.toLowerCase();
+            this.loadAdminData();
+        }
+
+        toggleUserSelection(userId) {
+            if (this.adminState.selectedUsers.has(userId)) {
+                this.adminState.selectedUsers.delete(userId);
+            } else {
+                this.adminState.selectedUsers.add(userId);
+            }
+            this.updateBulkToolbar();
+        }
+
+        updateBulkToolbar() {
+            const toolbar = document.getElementById('bulkActionsToolbar');
+            const count = document.getElementById('selectedCount');
+            if (this.adminState.selectedUsers.size > 0) {
+                toolbar.style.display = 'flex';
+                count.textContent = `${this.adminState.selectedUsers.size} seleccionados`;
+            } else {
+                toolbar.style.display = 'none';
+            }
+        }
+
+        showCustomModal(title, message, onConfirm) {
+            const modal = document.getElementById('customModal');
+            document.getElementById('customModalTitle').textContent = title;
+            document.getElementById('customModalMessage').textContent = message;
+
+            const confirmBtn = document.getElementById('customModalConfirm');
+            const cancelBtn = document.getElementById('customModalCancel');
+
+            // Clone buttons to remove old listeners
+            const newConfirm = confirmBtn.cloneNode(true);
+            const newCancel = cancelBtn.cloneNode(true);
+            confirmBtn.parentNode.replaceChild(newConfirm, confirmBtn);
+            cancelBtn.parentNode.replaceChild(newCancel, cancelBtn);
+
+            newConfirm.onclick = () => {
+                onConfirm();
+                this.closeCustomModal();
+            };
+            newCancel.onclick = () => this.closeCustomModal();
+
+            modal.classList.add('show');
+        }
+
+        closeCustomModal() {
+            document.getElementById('customModal').classList.remove('show');
+        }
+
+        // Overwrite existing confirm for delete/reset
+        confirmAction(title, message, action) {
+            this.showCustomModal(title, message, action);
+        }
+
+        loadAdminData() {
+            if (!this.users || this.users.length === 0) return;
+
+            // Show Admin Controls
+            document.getElementById('adminControls').style.display = 'flex';
+            // Bind Search Listener once
+            const searchInput = document.getElementById('adminSearchInput');
+            if (!searchInput.dataset.bound) {
+                searchInput.addEventListener('input', (e) => this.handleSearch(e));
+                searchInput.dataset.bound = true;
+            }
+
+            // 1. FILTER
+            let processedUsers = this.users.filter(user => {
+                const term = this.adminState.searchTerm;
+                if (!term) return true;
+                return (
+                    user.nombre.toLowerCase().includes(term) ||
+                    user.apellidos.toLowerCase().includes(term) ||
+                    user.email.toLowerCase().includes(term) ||
+                    (user.dni && user.dni.toLowerCase().includes(term))
+                );
+            });
+
+            // 2. SORT
+            processedUsers.sort((a, b) => {
+                let valA, valB;
+
+                if (this.adminState.sortCol === 'name') {
+                    valA = `${a.nombre} ${a.apellidos}`.toLowerCase();
+                    valB = `${b.nombre} ${b.apellidos}`.toLowerCase();
+                } else if (this.adminState.sortCol === 'dni') {
+                    valA = (a.dni || '').toLowerCase();
+                    valB = (b.dni || '').toLowerCase();
+                } else {
+                    // Date (default)
+                    const lastA = this.fichajes.filter(f => f.userId === a.id).sort((x, y) => new Date(y.date) - new Date(x.date))[0];
+                    const lastB = this.fichajes.filter(f => f.userId === b.id).sort((x, y) => new Date(y.date) - new Date(x.date))[0];
+                    valA = lastA ? new Date(lastA.date).getTime() : 0;
+                    valB = lastB ? new Date(lastB.date).getTime() : 0;
+                }
+
+                if (valA < valB) return this.adminState.sortAsc ? -1 : 1;
+                if (valA > valB) return this.adminState.sortAsc ? 1 : -1;
+                return 0;
+            });
+
+            // 3. RENDER
+            const list = document.getElementById('employeeList');
+            const totalStat = document.getElementById('totalEmployees');
+            if (totalStat) totalStat.textContent = this.users.length;
+
+            // Sorting Indicators
+            const getArrow = (col) => this.adminState.sortCol === col ? (this.adminState.sortAsc ? ' ↑' : ' ↓') : '';
+
+            // Generate Table Rows (Desktop)
+            const tableRows = processedUsers.map(user => {
+                const lastFichaje = this.fichajes
+                    .filter(f => f.userId === user.id)
+                    .sort((a, b) => new Date(b.date) - new Date(a.date))[0];
+
+                return `
                 <tr>
                     <td>
                         <div class="table-user-info">
+                            <!-- Checkbox for Bulk -->
+                            <input type="checkbox" 
+                                onchange="window.app.toggleUserSelection('${user.id}')"
+                                ${this.adminState.selectedUsers.has(user.id) ? 'checked' : ''}
+                                style="cursor:pointer; width:16px; height:16px; margin-right:10px;">
+
                             <div class="table-avatar">
                                 ${(user.nombre[0] + (user.apellidos[0] || '')).toUpperCase()}
                             </div>
@@ -953,7 +1093,7 @@ class FichajeApp {
                     </td>
                     <td>
                         <div class="table-actions">
-                             <button class="table-btn btn-reset" onclick="window.app.resetUserPassword('${user.id}', '${user.email}')" title="Resetear Contraseña">
+                             <button class="table-btn btn-reset" onclick="window.app.confirmAction('Resetear Contraseña', '¿Seguro que quieres resetear la contraseña de ${user.nombre}?', () => window.app.resetUserPassword('${user.id}', '${user.email}'))" title="Resetear Contraseña">
                                 🔑 Reset
                             </button>
                             <button class="table-btn btn-pdf" onclick="window.app.generatePDFForUser('${user.id}')" title="PDF Mes Actual">
@@ -962,24 +1102,28 @@ class FichajeApp {
                             <button class="table-btn btn-pdf-hist" onclick="window.app.generateAllPDFsForUser('${user.id}', '${user.nombre} ${user.apellidos}')" title="PDFs Históricos">
                                 📦 Historial
                             </button>
-                            <button class="table-btn btn-delete" onclick="window.app.deleteUser('${user.id}', '${user.email}')" title="Borrar Usuario">
+                            <button class="table-btn btn-delete" onclick="window.app.confirmAction('Borrar Usuario', '¿ATENCIÓN: Esto borrará al usuario y TODOS sus fichajes. ¿Continuar?', () => window.app.deleteUser('${user.id}', '${user.email}'))" title="Borrar Usuario">
                                 🗑️
                             </button>
                         </div>
                     </td>
                 </tr>
             `;
-        }).join('');
+            }).join('');
 
-        // Generate Cards (Mobile)
-        const mobileCards = this.users.map(user => {
-            const lastFichaje = this.fichajes
-                .filter(f => f.userId === user.id)
-                .sort((a, b) => new Date(b.date) - new Date(a.date))[0];
+            // Generate Cards (Mobile)
+            const mobileCards = processedUsers.map(user => {
+                const lastFichaje = this.fichajes
+                    .filter(f => f.userId === user.id)
+                    .sort((a, b) => new Date(b.date) - new Date(a.date))[0];
 
-            return `
+                return `
                 <div class="employee-card">
                     <div style="display: flex; gap: 10px; align-items: flex-start;">
+                        <input type="checkbox" 
+                                onchange="window.app.toggleUserSelection('${user.id}')"
+                                ${this.adminState.selectedUsers.has(user.id) ? 'checked' : ''}
+                                style="margin-top: 4px;">
                         <div class="user-avatar" style="width: 36px; height: 36px; font-size: 14px; flex-shrink: 0;">
                             ${(user.nombre[0] + (user.apellidos[0] || '')).toUpperCase()}
                         </div>
@@ -996,10 +1140,10 @@ class FichajeApp {
                         </div>
                     </div>
                     <div style="display: flex; gap: 6px; margin-top: 8px;">
-                        <button class="download-btn" style="flex: 1; padding: 6px 8px; font-size: 11px;" onclick="window.app.resetUserPassword('${user.id}', '${user.email}')">
+                        <button class="download-btn" style="flex: 1; padding: 6px 8px; font-size: 11px;" onclick="window.app.confirmAction('Resetear', '¿Resetear contraseña?', () => window.app.resetUserPassword('${user.id}', '${user.email}'))">
                             🔑 Reset
                         </button>
-                        <button class="download-btn" style="flex: 1; padding: 6px 8px; font-size: 11px; background: rgba(255,59,48,0.2);" onclick="window.app.deleteUser('${user.id}', '${user.email}')">
+                        <button class="download-btn" style="flex: 1; padding: 6px 8px; font-size: 11px; background: rgba(255,59,48,0.2);" onclick="window.app.confirmAction('Borrar', '¿Borrar usuario?', () => window.app.deleteUser('${user.id}', '${user.email}'))">
                             🗑️ Borrar
                         </button>
                     </div>
@@ -1013,228 +1157,167 @@ class FichajeApp {
                     </div>
                 </div>
             `;
-        }).join('');
+            }).join('');
 
-        // Combine Views
-        list.innerHTML = `
+            // Combine Views
+            list.className = 'employee-list animate-stagger';
+            list.innerHTML = `
             <!-- Desktop Table View -->
-            <div class="desktop-only animate-fade-in">
+            <div class="desktop-only">
                 <div class="admin-table-container">
                     <table class="admin-table">
                         <thead>
                             <tr>
-                                <th>Empleado</th>
-                                <th>DNI</th>
-                                <th>Último Fichaje</th>
+                                <th class="head-sortable" onclick="window.app.toggleSort('name')">Empleado ${getArrow('name')}</th>
+                                <th class="head-sortable" onclick="window.app.toggleSort('dni')">DNI ${getArrow('dni')}</th>
+                                <th class="head-sortable" onclick="window.app.toggleSort('date')">Último Fichaje ${getArrow('date')}</th>
                                 <th style="text-align: right;">Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
                             ${tableRows}
                         </tbody>
+
                     </table>
                 </div>
             </div>
 
             <!-- Mobile Card View -->
-            <div class="mobile-only animate-fade-in">
+            <div class="mobile-only">
                 ${mobileCards}
             </div>
         `;
-    }
+        }
 
     async resetUserPassword(userId, userEmail) {
-        const confirmed = confirm(`¿Resetear contraseña de ${userEmail}?\n\nSe generará una contraseña temporal: temp123456`);
-        if (!confirmed) return;
-
-        const result = await this.api.request('auth.php?action=admin_reset_password', 'POST', { userId });
-
-        if (result.success) {
-            this.showToast(`✅ Contraseña reseteada. Nueva contraseña: temp123456`, 'success');
-            alert(`Contraseña temporal para ${userEmail}:\n\ntemp123456\n\nEl usuario deberá cambiarla al iniciar sesión.`);
-        } else {
-            this.showToast(`❌ Error: ${result.message}`, 'error');
+            this.confirmAction('Resetear Contraseña', `¿Resetear contraseña de ${userEmail}?\n\nSe generará una contraseña temporal: temp123456`, async () => {
+                const result = await this.api.request('auth.php?action=admin_reset_password', 'POST', { userId });
+                if (result.success) {
+                    this.showToast(`✅ Contraseña reseteada`, 'success');
+                    this.showCustomModal('Contraseña Temporal', `La contraseña temporal para ${userEmail} es:\n\ntemp123456`, () => { });
+                } else {
+                    this.showToast(`❌ Error: ${result.message}`, 'error');
+                }
+            });
         }
-    }
 
     async deleteUser(userId, userEmail) {
-        const confirmed = confirm(`⚠️ ¿BORRAR usuario ${userEmail}?\n\nEsta acción NO se puede deshacer.\nSe eliminarán todos sus fichajes.`);
-        if (!confirmed) return;
-
-        const doubleConfirm = confirm(`¿Estás SEGURO de borrar ${userEmail}?`);
-        if (!doubleConfirm) return;
-
-        const result = await this.api.request('auth.php?action=admin_delete_user', 'POST', { userId });
-
-        if (result.success) {
-            this.showToast(`✅ Usuario eliminado`, 'success');
-            await this.loadAdminData();
-            this.renderEmployeeList();
-        } else {
-            this.showToast(`❌ Error: ${result.message}`, 'error');
+            this.confirmAction('Borrar Usuario', `⚠️ ¿BORRO DE VERDAD a ${userEmail}?\n\nEsta acción eliminará todos sus datos y fichajes para siempre.`, async () => {
+                const result = await this.api.request('auth.php?action=admin_delete_user', 'POST', { userId });
+                if (result.success) {
+                    this.showToast(`✅ Usuario eliminado`, 'success');
+                    this.users = this.users.filter(u => u.id !== userId);
+                    this.loadAdminData();
+                } else {
+                    this.showToast(`❌ Error: ${result.message} `, 'error');
+                }
+            });
         }
-    }
 
-    generatePDFForUser(userId) {
-        const user = this.users.find(u => u.id === userId);
-        if (!user) return;
-
-        // Filter fichajes for this user specifically
-        const userFichajes = this.fichajes.filter(f => f.userId === userId);
-
-        // We modify the user object to include mainSignature if available in their profile or use a placeholder
-        // Since we don't have their live signature pad, we rely on stored signature or their profile 'mainSignature' if kept there.
-        // For now, we will just pass the user object.
-        this._prepareAndDownloadPdf(user, userFichajes);
-    }
+        generatePDFForUser(userId) {
+            const user = this.users.find(u => u.id === userId);
+            if (!user) return;
+            const userFichajes = this.fichajes.filter(f => f.userId === userId);
+            this._prepareAndDownloadPdf(user, userFichajes);
+        }
 
     async generateAllPDFsForUser(userId, userName) {
-        const user = this.users.find(u => u.id === userId);
-        if (!user) return;
+            const user = this.users.find(u => u.id === userId);
+            if (!user) return;
+            const userFichajes = this.fichajes.filter(f => f.userId === userId);
 
-        const userFichajes = this.fichajes.filter(f => f.userId === userId);
+            if (userFichajes.length === 0) {
+                this.showToast('❌ No hay fichajes', 'error');
+                return;
+            }
 
-        if (userFichajes.length === 0) {
-            this.showToast('❌ No hay fichajes para este usuario', 'error');
-            return;
-        }
-
-        // Get unique months with data
-        const monthsSet = new Set();
-        userFichajes.forEach(f => {
-            const date = new Date(f.date);
-            const monthKey = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}`;
-            monthsSet.add(monthKey);
-        });
-
-        const months = Array.from(monthsSet).sort();
-
-        this.showToast(`📦 Generando ${months.length} PDFs para ${userName}...`, 'info');
-
-        // Generate PDFs sequentially with delay
-        for (let i = 0; i < months.length; i++) {
-            const [year, month] = months[i].split('-');
-            const monthDate = new Date(parseInt(year), parseInt(month) - 1, 1);
-
-            // Filter fichajes for this specific month
-            const monthFichajes = userFichajes.filter(f => {
-                const fDate = new Date(f.date);
-                return fDate.getFullYear() === parseInt(year) &&
-                    fDate.getMonth() === parseInt(month) - 1;
+            const monthsSet = new Set();
+            userFichajes.forEach(f => {
+                const date = new Date(f.date);
+                const monthKey = `${date.getFullYear()} -${(date.getMonth() + 1).toString().padStart(2, '0')} `;
+                monthsSet.add(monthKey);
             });
 
-            // Temporarily set currentMonth for PDF generation
-            const originalMonth = this.currentMonth;
-            this.currentMonth = monthDate;
+            const months = Array.from(monthsSet).sort();
+            this.showToast(`Generando ${months.length} PDFs...`, 'info');
 
-            // Generate PDF
-            await this._prepareAndDownloadPdf(user, monthFichajes);
+            for (const monthKey of months) {
+                const [year, month] = monthKey.split('-');
+                const monthFichajes = userFichajes.filter(f => {
+                    const d = new Date(f.date);
+                    return d.getFullYear() === parseInt(year) && d.getMonth() === parseInt(month) - 1;
+                });
 
-            // Restore original month
-            this.currentMonth = originalMonth;
-
-            // Small delay between PDFs
-            if (i < months.length - 1) {
-                await new Promise(resolve => setTimeout(resolve, 500));
+                const originalMonth = this.currentMonth;
+                this.currentMonth = new Date(parseInt(year), parseInt(month) - 1, 1);
+                await this._prepareAndDownloadPdf(user, monthFichajes);
+                this.currentMonth = originalMonth;
+                await new Promise(r => setTimeout(r, 500));
             }
+            this.showToast('✅ Completado', 'success');
         }
-
-        this.showToast(`✅ ${months.length} PDFs generados`, 'success');
-    }
 
     async _prepareAndDownloadPdf(user, userFichajes) {
-        this.showToast(`Generando PDF para ${user.nombre}...`);
+            this.showToast(`Generando PDF para ${user.nombre}...`);
 
-        const toDataURL = url => {
-            // Convert relative URLs to absolute
-            const absoluteUrl = url.startsWith('http') ? url : `${window.location.origin}/${url}`;
+            const toDataURL = url => {
+                const absoluteUrl = url.startsWith('http') ? url : `${window.location.origin}/${url}`;
+                return fetch(absoluteUrl)
+                    .then(response => {
+                        if (!response.ok) throw new Error('Failed to fetch');
+                        return response.blob();
+                    })
+                    .then(blob => new Promise((resolve, reject) => {
+                        const reader = new FileReader();
+                        reader.onloadend = () => resolve(reader.result);
+                        reader.onerror = reject;
+                        reader.readAsDataURL(blob);
+                    }))
+                    .catch((err) => null);
+            };
 
-            return fetch(absoluteUrl)
-                .then(response => {
-                    if (!response.ok) throw new Error('Failed to fetch');
-                    return response.blob();
-                })
-                .then(blob => new Promise((resolve, reject) => {
-                    const reader = new FileReader();
-                    reader.onloadend = () => resolve(reader.result);
-                    reader.onerror = reject;
-                    reader.readAsDataURL(blob);
-                }))
-                .catch((err) => {
-                    console.warn('Failed to load signature:', absoluteUrl, err);
-                    return null;
-                });
-        };
+            const processedFichajes = await Promise.all(userFichajes.map(async f => {
+                let entrySig = f.entrySignature && !f.entrySignature.startsWith('data:') ? await toDataURL(f.entrySignature) : f.entrySignature;
+                let exitSig = f.exitSignature && !f.exitSignature.startsWith('data:') ? await toDataURL(f.exitSignature) : f.exitSignature;
+                return { ...f, entrySignature: entrySig, exitSignature: exitSig };
+            }));
 
-        const processedFichajes = await Promise.all(userFichajes.map(async f => {
-            let entrySig = null; let exitSig = null;
-            if (f.entrySignature && !f.entrySignature.startsWith('data:')) {
-                entrySig = await toDataURL(f.entrySignature);
-            } else {
-                entrySig = f.entrySignature;
+            let mainSignatureData = user.mainSignature;
+            if (!mainSignatureData && userFichajes.some(f => f.exitSignature)) {
+                mainSignatureData = userFichajes.filter(f => f.exitSignature).sort((a, b) => new Date(b.date) - new Date(a.date))[0].exitSignature;
+            }
+            if (mainSignatureData && !mainSignatureData.startsWith('data:')) {
+                mainSignatureData = await toDataURL(mainSignatureData);
             }
 
-            if (f.exitSignature && !f.exitSignature.startsWith('data:')) {
-                exitSig = await toDataURL(f.exitSignature);
-            } else {
-                exitSig = f.exitSignature;
-            }
-
-            return { ...f, entrySignature: entrySig, exitSignature: exitSig };
-        }));
-
-        // Handle User Main Signature (Convert to DataURL if it's a URL/Path)
-        let mainSignatureData = user.mainSignature;
-
-        // If no main signature, use the most recent exit signature as fallback
-        if (!mainSignatureData || mainSignatureData === '') {
-            // Find the most recent fichaje with an exit signature
-            const fichajesWithExitSig = userFichajes
-                .filter(f => f.exitSignature)
-                .sort((a, b) => new Date(b.date) - new Date(a.date));
-
-            if (fichajesWithExitSig.length > 0) {
-                mainSignatureData = fichajesWithExitSig[0].exitSignature;
-            }
+            this._createAndDownloadPdf({ ...user, mainSignature: mainSignatureData }, processedFichajes);
         }
-
-        if (mainSignatureData && !mainSignatureData.startsWith('data:')) {
-            mainSignatureData = await toDataURL(mainSignatureData);
-        }
-
-        const processedUser = { ...user, mainSignature: mainSignatureData };
-
-        this._createAndDownloadPdf(processedUser, processedFichajes);
-    }
 
     async sharePDF() { this.generatePDF(); }
 
-    loadSettingsForm() {
-        document.getElementById('settingsNombre').value = this.currentUser.nombre || '';
-        document.getElementById('settingsApellidos').value = this.currentUser.apellidos || '';
-        document.getElementById('settingsDni').value = this.currentUser.dni || '';
-        document.getElementById('settingsAfiliacion').value = this.currentUser.afiliacion || '';
-        document.getElementById('settingsEmail').value = this.currentUser.email || '';
-    }
+        loadSettingsForm() {
+            document.getElementById('settingsNombre').value = this.currentUser.nombre || '';
+            document.getElementById('settingsApellidos').value = this.currentUser.apellidos || '';
+            document.getElementById('settingsDni').value = this.currentUser.dni || '';
+            document.getElementById('settingsAfiliacion').value = this.currentUser.afiliacion || '';
+            document.getElementById('settingsEmail').value = this.currentUser.email || '';
+        }
 
     async handleSaveSettings(e) {
-        e.preventDefault();
-
-        const updatedData = {
-            nombre: document.getElementById('settingsNombre').value.trim(),
-            apellidos: document.getElementById('settingsApellidos').value.trim(),
-            dni: document.getElementById('settingsDni').value.trim(),
-            afiliacion: document.getElementById('settingsAfiliacion').value.trim()
-        };
-
-        const result = await this.api.request('auth.php?action=update_profile', 'POST', updatedData);
-
-        if (result.success) {
-            this.currentUser = { ...this.currentUser, ...updatedData };
-            this.showToast('✅ Datos actualizados correctamente', 'success');
-        } else {
-            this.showToast(`❌ Error: ${result.message}`, 'error');
+            e.preventDefault();
+            const updatedData = {
+                nombre: document.getElementById('settingsNombre').value.trim(),
+                apellidos: document.getElementById('settingsApellidos').value.trim(),
+                dni: document.getElementById('settingsDni').value.trim(),
+                afiliacion: document.getElementById('settingsAfiliacion').value.trim()
+            };
+            const result = await this.api.request('auth.php?action=update_profile', 'POST', updatedData);
+            if (result.success) {
+                this.currentUser = { ...this.currentUser, ...updatedData };
+                this.showToast('✅ Datos actualizados', 'success');
+            } else {
+                this.showToast(`❌ Error: ${result.message}`, 'error');
+            }
         }
     }
-}
 document.addEventListener('DOMContentLoaded', () => { window.app = new FichajeApp(); });
