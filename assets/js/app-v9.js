@@ -1147,6 +1147,7 @@ class FichajeApp {
 
     renderEmployeeList(usersToRender = null) {
         const users = usersToRender || this.filteredUsers || this.users;
+        console.log(`[DEBUG] renderEmployeeList called. Users to render: ${users ? users.length : 'null'}`);
         const list = document.getElementById('employeeList');
 
         // Generate Table Rows (Desktop)
