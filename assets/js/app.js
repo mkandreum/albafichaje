@@ -1718,36 +1718,37 @@ class FichajeApp {
             hoursEl.textContent = '0h 00m';
         }
     }
-}
 
-// Profile Photo Handling in Class
-setupProfilePhoto() {
-    const input = document.getElementById('profilePhotoInput');
-    if (!input) return;
+    // Profile Photo Handling
+    setupProfilePhoto() {
+        const input = document.getElementById('profilePhotoInput');
+        if (!input) return;
 
-    input.addEventListener('change', (e) => {
-        const file = e.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                const result = e.target.result;
-                this.updateProfilePhotoUI(result);
-                // Save to user profile (mock)
-                this.currentUser.photo = result;
-                localStorage.setItem('currentUser', JSON.stringify(this.currentUser));
-                this.showToast('✅ Foto actualizada', 'success');
-            };
-            reader.readAsDataURL(file);
+        input.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const result = e.target.result;
+                    this.updateProfilePhotoUI(result);
+                    // Save to user profile (mock)
+                    this.currentUser.photo = result;
+                    localStorage.setItem('currentUser', JSON.stringify(this.currentUser));
+                    this.showToast('✅ Foto actualizada', 'success');
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    }
+
+    updateProfilePhotoUI(src) {
+        const img = document.getElementById('settingsProfileImg');
+        const placeholder = document.getElementById('settingsProfilePlaceholder');
+        if (img && placeholder) {
+            img.src = src;
+            img.style.display = 'block';
+            placeholder.style.display = 'none';
         }
-    });
-}
-
-updateProfilePhotoUI(src) {
-    const img = document.getElementById('settingsProfileImg');
-    const placeholder = document.getElementById('settingsProfilePlaceholder');
-    if (img && placeholder) {
-        img.src = src;
-        img.style.display = 'block';
-        placeholder.style.display = 'none';
     }
 }
+document.addEventListener('DOMContentLoaded', () => { window.app = new FichajeApp(); });
