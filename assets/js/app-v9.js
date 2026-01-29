@@ -992,8 +992,8 @@ class FichajeApp {
                         widths: ['50%', '50%'],
                         body: [
                             [
-                                { text: 'Firma de la empresa:', style: 'signatureLabel', alignment: 'center', border: [false, false, false, false] },
-                                { text: 'Firma del trabajador:', style: 'signatureLabel', alignment: 'center', border: [false, false, false, false] }
+                                { text: 'Firma de la empresa:', style: 'signatureLabel', alignment: 'center', border: [false, false, false, false], color: 'black' },
+                                { text: 'Firma del trabajador:', style: 'signatureLabel', alignment: 'center', border: [false, false, false, false], color: 'black' }
                             ],
                             [
                                 companySignatureImg,
