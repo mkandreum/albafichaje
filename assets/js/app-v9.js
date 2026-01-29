@@ -987,22 +987,23 @@ class FichajeApp {
                 },
                 { text: '', margin: [0, 5] },
                 {
-                    columns: [
-                        {
-                            stack: [
-                                { text: 'Firma de la empresa:', style: 'signatureLabel', alignment: 'center' },
-                                companySignatureImg
+                    style: 'signatureTable',
+                    table: {
+                        widths: ['50%', '50%'],
+                        body: [
+                            [
+                                { text: 'Firma de la empresa:', style: 'signatureLabel', alignment: 'center', border: [false, false, false, false] },
+                                { text: 'Firma del trabajador:', style: 'signatureLabel', alignment: 'center', border: [false, false, false, false] }
                             ],
-                            width: '50%'
-                        },
-                        {
-                            stack: [
-                                { text: 'Firma del trabajador:', style: 'signatureLabel', alignment: 'center' },
+                            [
+                                companySignatureImg,
                                 employeeSignatureImg
-                            ],
-                            width: '50%'
-                        }
-                    ],
+                            ]
+                        ]
+                    },
+                    layout: {
+                        defaultBorder: false,
+                    },
                     unbreakable: true
                 },
                 { text: '', margin: [0, 0] },
