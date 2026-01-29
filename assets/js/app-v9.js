@@ -97,25 +97,30 @@ class FichajeApp {
     }
 
     setupEventListeners() {
-        document.getElementById('loginForm').addEventListener('submit', (e) => this.handleLogin(e));
-        document.getElementById('registerForm').addEventListener('submit', (e) => this.handleRegister(e));
-        document.getElementById('changePasswordForm').addEventListener('submit', (e) => this.handleChangePassword(e));
-        document.getElementById('showRegisterBtn').addEventListener('click', () => this.showScreen('register'));
-        document.getElementById('backToLoginBtn').addEventListener('click', () => this.showScreen('login'));
-        document.getElementById('logoutBtn').addEventListener('click', () => this.handleLogout());
+        const safeAdd = (id, event, handler) => {
+            const el = document.getElementById(id);
+            if (el) el.addEventListener(event, handler);
+        };
 
-        document.getElementById('registerFichajeBtn').addEventListener('click', () => this.registerFichaje());
-        document.getElementById('clearEntrySig').addEventListener('click', () => this.clearDailyPad('entry'));
-        document.getElementById('clearExitSig').addEventListener('click', () => this.clearDailyPad('exit'));
+        safeAdd('loginForm', 'submit', (e) => this.handleLogin(e));
+        safeAdd('registerForm', 'submit', (e) => this.handleRegister(e));
+        safeAdd('changePasswordForm', 'submit', (e) => this.handleChangePassword(e));
+        safeAdd('showRegisterBtn', 'click', () => this.showScreen('register'));
+        safeAdd('backToLoginBtn', 'click', () => this.showScreen('login'));
+        safeAdd('logoutBtn', 'click', () => this.handleLogout());
 
-        document.getElementById('prevMonthBtn').addEventListener('click', () => this.changeMonth(-1));
-        document.getElementById('nextMonthBtn').addEventListener('click', () => this.changeMonth(1));
+        safeAdd('registerFichajeBtn', 'click', () => this.registerFichaje());
+        safeAdd('clearEntrySig', 'click', () => this.clearDailyPad('entry'));
+        safeAdd('clearExitSig', 'click', () => this.clearDailyPad('exit'));
 
-        document.getElementById('clearSignatureBtn').addEventListener('click', () => this.clearMainSignature());
-        document.getElementById('generatePdfBtn').addEventListener('click', () => this.generatePDF());
-        document.getElementById('sharePdfBtn').addEventListener('click', () => this.sharePDF());
+        safeAdd('prevMonthBtn', 'click', () => this.changeMonth(-1));
+        safeAdd('nextMonthBtn', 'click', () => this.changeMonth(1));
 
-        document.getElementById('settingsForm').addEventListener('submit', (e) => this.handleSaveSettings(e));
+        safeAdd('clearSignatureBtn', 'click', () => this.clearMainSignature());
+        safeAdd('generatePdfBtn', 'click', () => this.generatePDF());
+        safeAdd('sharePdfBtn', 'click', () => this.sharePDF());
+
+        safeAdd('settingsForm', 'submit', (e) => this.handleSaveSettings(e));
 
         // Simple Tab Switching
         document.querySelectorAll('.tab-btn').forEach(btn => {
@@ -2051,4 +2056,4 @@ class FichajeApp {
     }
 }
 document.addEventListener('DOMContentLoaded', () => { window.app = new FichajeApp(); });
-// v6.5 force deploy
+// v9.4 force deploy safe listeners

@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#0A84FF">
     <meta name="description" content="Sistema de fichaje y gestión de empleados para Albaluz Desarrollos Urbanos">
@@ -15,7 +15,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="assets/css/styles-v7.css?v=9.3">
+    <link rel="stylesheet" href="assets/css/styles-v7.css?v=9.4">
 </head>
 
 <body>
@@ -433,7 +433,7 @@
                             <h3 style="font-size: 14px; color: var(--text-tertiary); margin: 0 0 12px 0;">Horas Este Mes
                             </h3>
                             <div id="monthHours"
-                                style="font-size: 36px; font-weight: 700; background: linear-gradient(90deg, #0A84FF, #BF5AF2); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+                                style="font-size: 36px; font-weight: 700; background: linear-gradient(90deg, #0A84FF, #BF5AF2); background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
                                 0h</div>
                         </div>
                         <div class="stat-card glass-card" style="padding: 20px;">
@@ -596,6 +596,16 @@
             </div>
 
             <!-- More Menu (Mobile Pop-up) -->
+            <div class="more-menu-backdrop" onclick="window.app.closeMoreMenu()"></div>
+            <div id="moreMenu" class="more-menu glass-card">
+                <div class="more-menu-header">
+                    <h3>Más opciones</h3>
+                    <button class="close-btn" onclick="window.app.closeMoreMenu()">×</button>
+                </div>
+                <div class="more-menu-items">
+                    <!-- Items added dynamically or static -->
+                </div>
+            </div>
 
         </nav>
     </div>
@@ -713,7 +723,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.9/pdfmake.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.9/vfs_fonts.js"></script>
 
-    <script src="assets/js/app-v9.js?v=9.3"></script>
+    <script src="assets/js/app-v9.js?v=9.4"></script>
 </body>
 
 </html>
