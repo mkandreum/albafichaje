@@ -330,13 +330,17 @@ body::before {
     border: 1px solid transparent;
 }
 
-.glass-input:focus-within {
+.glass-input:focus-within,
+input.glass-input:focus,
+select.glass-select:focus {
     background: rgba(0, 0, 0, 0.4);
     border-color: var(--accent-primary);
     box-shadow: 0 0 0 4px rgba(10, 132, 255, 0.15);
 }
 
-.glass-input input {
+.glass-input input,
+input.glass-input,
+select.glass-select {
     width: 100%;
     padding: 16px;
     background: transparent;
@@ -344,6 +348,20 @@ body::before {
     color: var(--text-primary);
     font-size: 17px;
     outline: none;
+}
+
+/* Standalone Input/Select Support */
+input.glass-input,
+select.glass-select {
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid transparent;
+    border-radius: 12px;
+    transition: all 0.3s ease;
+}
+
+select.glass-select option {
+    background: #1c1c1e;
+    color: white;
 }
 
 /* ==========================================
