@@ -1018,7 +1018,7 @@ class FichajeApp {
                     layout: {
                         defaultBorder: false,
                     },
-                    margin: [0, 10, 0, 0],
+                    margin: [0, 5, 0, 0], // Reduced margin from 10 to 5
                     unbreakable: true
                 },
                 { text: '', margin: [0, 0] },
@@ -1034,12 +1034,13 @@ class FichajeApp {
                         { text: currentYear.toString(), decoration: 'underline' }
                     ],
                     alignment: 'right',
-                    margin: [0, 20, 0, 10],
-                    fontSize: 14
-                }, {
+                    margin: [0, 5, 0, 5], // Reduced margin from [0, 20, 0, 10] to [0, 5, 0, 5]
+                    fontSize: 12 // Slightly smaller font
+                },
+                {
                     text: 'Registro realizado en cumplimiento de la letra h) del artículo 1 del R.D.-Ley 16/2013, de 20 de diciembre por el que se modifica el artículo 12.5 del E.T., por el que se establece que "La jornada de los trabajadores a tiempo parcial se registrará día a día y se totalizará mensualmente, entregando copia al trabajador, junto con el recibo de salarios, del resumen de todas las horas realizadas en cada mes, tanto de las ordinarias como de las complementarias en sus distintas modalidades.\n\nEl empresario deberá conservar los resúmenes mensuales de los registros de jornada durante un periodo mínimo de cuatro años. El incumplimiento empresarial de estas obligaciones de registro tendrá por consecuencia jurídica la de que el contrato se presuma celebrado a jornada completa, salvo prueba en contrario que acredite el carácter parcial de los servicios.',
                     style: 'legalText',
-                    margin: [0, 8, 0, 0]
+                    margin: [0, 5, 0, 0] // Reduced margin from 8 to 5
                 }
             ],
             styles: {
@@ -2056,4 +2057,4 @@ class FichajeApp {
     }
 }
 document.addEventListener('DOMContentLoaded', () => { window.app = new FichajeApp(); });
-// v9.5 force deploy alignment fix
+// v9.6 force deploy spacing fix

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'albafichaje-v9.5';
+const CACHE_NAME = 'albafichaje-v9.6';
 const urlsToCache = [
     '/',
     '/index.html',
