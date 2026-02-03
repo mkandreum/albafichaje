@@ -121,6 +121,7 @@ class FichajeApp {
         safeAdd('sharePdfBtn', 'click', () => this.sharePDF());
 
         safeAdd('settingsForm', 'submit', (e) => this.handleSaveSettings(e));
+        safeAdd('adminPasswordForm', 'submit', (e) => this.handleAdminPasswordChange(e));
 
         // Simple Tab Switching
         document.querySelectorAll('.tab-btn').forEach(btn => {
@@ -474,30 +475,47 @@ class FichajeApp {
     }
 
     clearForm() {
+        // Preserve the currently selected date
+        const dateInput = document.getElementById('fichajeDate');
+        const selectedDate = dateInput ? dateInput.value : null;
+
         document.getElementById('entryTime').value = '';
         document.getElementById('exitTime').value = '';
         this.clearDailyPad('entry');
         this.clearDailyPad('exit');
-        this.loadTodayFichajes();
+
+        // Load fichajes for the selected date (not today)
+        this.loadSelectedDateFichajes();
     }
 
     loadTodayFichajes() {
-        this.updateCurrentDate();
-        const today = new Date().toISOString().split('T')[0];
+        // Initialize date to today only if not already set
+        const dateInput = document.getElementById('fichajeDate');
+        if (dateInput && !dateInput.value) {
+            const today = new Date().toISOString().split('T')[0];
+            dateInput.value = today;
+            dateInput.max = today; // Prevent future dates
+        }
+        this.loadSelectedDateFichajes();
+    }
+
+    loadSelectedDateFichajes() {
+        const dateInput = document.getElementById('fichajeDate');
+        const selectedDate = dateInput ? dateInput.value : new Date().toISOString().split('T')[0];
         const userId = this.currentUser.id || this.currentUser.email;
-        const todayFichajes = this.fichajes.filter(f => f.date === today && f.userId === userId);
+        const dateFichajes = this.fichajes.filter(f => f.date === selectedDate && f.userId === userId);
         const listContainer = document.getElementById('todayList');
         if (!listContainer) return;
 
-        if (todayFichajes.length === 0) {
-            listContainer.innerHTML = '<p style="color: rgba(255,255,255,0.5); text-align: center;">No hay fichajes registrados hoy</p>';
+        if (dateFichajes.length === 0) {
+            listContainer.innerHTML = '<p style="color: rgba(255,255,255,0.5); text-align: center;">No hay fichajes registrados para esta fecha</p>';
             return;
         }
 
         // Sort by shift number
-        todayFichajes.sort((a, b) => (a.shift || 1) - (b.shift || 1));
+        dateFichajes.sort((a, b) => (a.shift || 1) - (b.shift || 1));
 
-        listContainer.innerHTML = todayFichajes.map(f => `
+        listContainer.innerHTML = dateFichajes.map(f => `
             <div class="fichaje-item">
                 <div>
                     <div style="font-weight: 600; margin-bottom: 4px; color: var(--accent-primary);">
@@ -514,7 +532,10 @@ class FichajeApp {
         const today = new Date().toISOString().split('T')[0];
         const dateInput = document.getElementById('fichajeDate');
         if (dateInput) {
-            dateInput.value = today;
+            // Only set to today if no date is currently selected
+            if (!dateInput.value) {
+                dateInput.value = today;
+            }
             dateInput.max = today; // Prevent future dates
         }
     }
@@ -696,7 +717,7 @@ class FichajeApp {
                 this.inactivityTimer = setTimeout(() => {
                     this.showToast('Sesión cerrada por inactividad', 'error');
                     this.handleLogout();
-                }, 10 * 60 * 1000);
+                }, 5 * 60 * 1000); // 5 minutes of inactivity
             }
         };
         window.addEventListener('mousemove', resetTimer);
@@ -1581,6 +1602,36 @@ class FichajeApp {
         if (result.success) {
             this.currentUser = { ...this.currentUser, ...updatedData };
             this.showToast('✅ Datos actualizados correctamente', 'success');
+        } else {
+            this.showToast(`❌ Error: ${result.message}`, 'error');
+        }
+    }
+
+    async handleAdminPasswordChange(e) {
+        e.preventDefault();
+
+        const newPassword = document.getElementById('adminNewPassword').value;
+        const confirmPassword = document.getElementById('adminConfirmPassword').value;
+
+        // Validate passwords match
+        if (newPassword !== confirmPassword) {
+            this.showToast('❌ Las contraseñas no coinciden', 'error');
+            return;
+        }
+
+        // Validate minimum length
+        if (newPassword.length < 6) {
+            this.showToast('❌ La contraseña debe tener al menos 6 caracteres', 'error');
+            return;
+        }
+
+        const result = await this.api.request('auth.php?action=admin_change_password', 'POST', { newPassword });
+
+        if (result.success) {
+            this.showToast('✅ Contraseña actualizada correctamente', 'success');
+            // Clear the form
+            document.getElementById('adminNewPassword').value = '';
+            document.getElementById('adminConfirmPassword').value = '';
         } else {
             this.showToast(`❌ Error: ${result.message}`, 'error');
         }

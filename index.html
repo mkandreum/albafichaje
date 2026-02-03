@@ -525,6 +525,28 @@
                     <div id="companiesList" class="companies-grid">
                         <!-- Companies will be rendered here -->
                     </div>
+
+                    <!-- Admin Password Reset Section -->
+                    <div class="glass-card content-card" style="margin-top: 32px;">
+                        <h2 class="section-title">Cambiar Contraseña de Administrador</h2>
+                        <p class="section-subtitle">Actualiza tu contraseña de acceso</p>
+
+                        <form id="adminPasswordForm" class="form-container">
+                            <div class="form-group">
+                                <label for="adminNewPassword">Nueva Contraseña</label>
+                                <input type="password" id="adminNewPassword" required minlength="6" placeholder="Mínimo 6 caracteres">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="adminConfirmPassword">Confirmar Contraseña</label>
+                                <input type="password" id="adminConfirmPassword" required minlength="6" placeholder="Repite la contraseña">
+                            </div>
+
+                            <button type="submit" class="glass-button primary">
+                                <span>Actualizar Contraseña</span>
+                            </button>
+                        </form>
+                    </div>
                 </div>
             </div>
         </main>

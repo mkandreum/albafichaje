@@ -23,6 +23,9 @@ switch ($action) {
     case 'change_password':
         handleChangePassword();
         break;
+    case 'admin_change_password':
+        handleAdminChangePassword();
+        break;
     case 'admin_reset_password':
         handleAdminResetPassword();
         break;
@@ -75,6 +78,45 @@ function handleChangePassword()
     if ($found) {
         writeJson(USERS_FILE, $users);
         response(['success' => true, 'message' => 'Contraseña actualizada correcta', 'user' => $_SESSION['user']]);
+    } else {
+        response(['success' => false, 'message' => 'Usuario no encontrado'], 404);
+    }
+}
+
+function handleAdminChangePassword()
+{
+    // Check if user is admin
+    if (!isset($_SESSION['user']) || $_SESSION['user']['role'] !== 'admin') {
+        response(['success' => false, 'message' => 'Solo administradores pueden cambiar su contraseña desde aquí'], 403);
+    }
+
+    $input = getInput();
+    $newPassword = $input['newPassword'] ?? '';
+
+    if (empty($newPassword) || strlen($newPassword) < 6) {
+        response(['success' => false, 'message' => 'La contraseña debe tener al menos 6 caracteres'], 400);
+    }
+
+    $userId = $_SESSION['user']['id'];
+    $users = readJson(USERS_FILE);
+    $found = false;
+
+    foreach ($users as &$user) {
+        if ($user['id'] === $userId) {
+            $user['password'] = password_hash($newPassword, PASSWORD_DEFAULT);
+            // Update session
+            $sessionUser = $user;
+            unset($sessionUser['password']);
+            $_SESSION['user'] = $sessionUser;
+
+            $found = true;
+            break;
+        }
+    }
+
+    if ($found) {
+        writeJson(USERS_FILE, $users);
+        response(['success' => true, 'message' => 'Contraseña de administrador actualizada correctamente']);
     } else {
         response(['success' => false, 'message' => 'Usuario no encontrado'], 404);
     }
