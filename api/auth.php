@@ -104,18 +104,26 @@ function handleAdminChangePassword()
     foreach ($users as &$user) {
         if ($user['id'] === $userId) {
             $user['password'] = password_hash($newPassword, PASSWORD_DEFAULT);
-            // Update session
-            $sessionUser = $user;
-            unset($sessionUser['password']);
-            $_SESSION['user'] = $sessionUser;
-
             $found = true;
             break;
         }
     }
+    unset($user); // Important: break the reference to avoid issues
 
     if ($found) {
         writeJson(USERS_FILE, $users);
+        
+        // Update session (without password)
+        $sessionUser = null;
+        foreach ($users as $u) {
+            if ($u['id'] === $userId) {
+                $sessionUser = $u;
+                unset($sessionUser['password']);
+                $_SESSION['user'] = $sessionUser;
+                break;
+            }
+        }
+        
         response(['success' => true, 'message' => 'Contraseña de administrador actualizada correctamente']);
     } else {
         response(['success' => false, 'message' => 'Usuario no encontrado'], 404);

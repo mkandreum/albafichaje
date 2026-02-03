@@ -453,7 +453,7 @@ class FichajeApp {
             const wasUpdate = existingIndex !== -1;
             this.showToast(wasUpdate ? 'Fichaje actualizado' : 'Fichaje registrado');
             await this.loadData();
-            this.loadTodayFichajes();
+            // Clear form first (preserves date), then reload fichajes for that date
             this.clearForm();
         } else {
             this.showToast('Error guardando fichaje', 'error');
