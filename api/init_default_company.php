@@ -25,6 +25,7 @@ if (!$defaultExists) {
         'name' => 'ALBALUZ DESARROLLOS URBANOS, S.A.',
         'cif' => 'A98543432',
         'address' => 'ALBALUZ DESARROLLOS URBANOS S.A',
+        'city' => 'ALBACETE',
         'ccc' => '02/1089856/19',
         'sealImage' => '',
         'isDefault' => true,

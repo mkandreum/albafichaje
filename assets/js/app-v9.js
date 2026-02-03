@@ -1056,7 +1056,7 @@ class FichajeApp {
                 {
                     text: [
                         { text: 'En ' },
-                        { text: (companyProfile && companyProfile.address ? companyProfile.address.split(',')[0].toUpperCase() : 'ALBACETE'), decoration: 'underline' },
+                        { text: (companyProfile && companyProfile.city ? companyProfile.city.toUpperCase() : 'ALBACETE'), decoration: 'underline' },
                         { text: ', a ' },
                         { text: lastDayOfMonth.toString(), decoration: 'underline' },
                         { text: ' de ' },

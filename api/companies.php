@@ -38,6 +38,7 @@ function handleSave()
     $name = trim($input['name'] ?? ''); 
     $cif = trim($input['cif'] ?? '');
     $address = trim($input['address'] ?? '');
+    $city = trim($input['city'] ?? 'ALBACETE'); // Default city
     $ccc = trim($input['ccc'] ?? '');
     $sealImage = $input['sealImage'] ?? ''; // Expecting base64 URL or relative path
 
@@ -54,6 +55,7 @@ function handleSave()
             $company['name'] = $name;
             $company['cif'] = $cif;
             $company['address'] = $address;
+            $company['city'] = $city;
             $company['ccc'] = $ccc;
             if (!empty($sealImage)) {
                 $company['sealImage'] = $sealImage;
@@ -69,6 +71,7 @@ function handleSave()
             'name' => $name,
             'cif' => $cif,
             'address' => $address,
+            'city' => $city,
             'ccc' => $ccc,
             'sealImage' => $sealImage,
             'createdAt' => date('c')
