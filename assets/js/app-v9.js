@@ -634,11 +634,6 @@ class FichajeApp {
 
             ctx.scale(dpr, dpr);
 
-            canvas.width = rect.width * dpr;
-            canvas.height = rect.height * dpr;
-
-            ctx.scale(dpr, dpr);
-
             // Do NOT set canvas.style.width/height here
             // Let CSS (width: 100%; height: 100%) handle the display size
             // This ensures it fills the container perfectly even if container resizes dynamically
@@ -1236,7 +1231,7 @@ class FichajeApp {
                 const initials = ((nombre[0] || '?') + (apellidos[0] || '')).toUpperCase();
 
                 return `
-                    <tr class="animate-stagger" style="animation-delay: ${index * 0.03}s">
+                    <tr class="animate-stagger" style="animation-delay: ${index * 0.05}s">
                         <td>
                             <input type="checkbox" class="user-checkbox" data-user-id="${user.id}" ${isSelected ? 'checked' : ''}>
                         </td>
@@ -1300,7 +1295,7 @@ class FichajeApp {
 
 
                 return `
-                <div class="employee-card animate-stagger" style="animation-delay: ${index * 0.05}s">
+                <div class="employee-card animate-stagger" style="animation-delay: ${index * 0.08}s">
                     <div style="display: flex; gap: 12px; align-items: flex-start;">
                         <input type="checkbox" class="user-checkbox" data-user-id="${user.id}" ${isSelected ? 'checked' : ''} style="margin-top: 4px;">
                         <div class="user-avatar" style="width: 40px; height: 40px; font-size: 16px; flex-shrink: 0;">
