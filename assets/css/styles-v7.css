@@ -35,7 +35,7 @@
     /* Curve of the phone structure */
     --radius-panel: 28px;
     --radius-button: 16px;
-    --nav-height: 85px;
+    --nav-height: 80px;
 
     /* Spacing */
     --safe-area-top: env(safe-area-inset-top, 47px);
@@ -387,7 +387,7 @@ select.glass-select option {
 }
 
 .glass-button:active {
-    transform: scale(0.96);
+    opacity: 0.85;
 }
 
 /* Primary Action - "Liquid Blue" */
@@ -1018,8 +1018,8 @@ select.glass-select option {
 
 @media (max-height: 600px) {
     .signature-section .glass-signature-pad {
-        height: 140px;
-        /* Even smaller */
+        height: 160px;
+        /* Increased from 140px for better usability */
     }
 }
 
@@ -1110,8 +1110,11 @@ select.glass-select option {
 
 .tabs-container {
     position: relative;
-    width: 280px;
-    /* Leave some padding margin */
+    width: 100%;
+    max-width: 280px;
+    /* Flexible width with max limit */
+    min-width: 240px;
+    /* Minimum width to prevent breaking */
     height: 52px;
     /* Leave some padding margin */
     display: flex;
@@ -1136,9 +1139,8 @@ select.glass-select option {
     box-shadow:
         0 2px 8px rgba(0, 0, 0, 0.15),
         inset 0 1px 0 rgba(255, 255, 255, 0.5);
-    transition: transform 0.4s cubic-bezier(0.23, 1, 0.32, 1),
-        width 0.4s cubic-bezier(0.23, 1, 0.32, 1),
-        left 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+    transition: left 0.3s cubic-bezier(0.23, 1, 0.32, 1),
+        width 0.3s cubic-bezier(0.23, 1, 0.32, 1);
     z-index: 0;
     pointer-events: none;
 }
@@ -1194,8 +1196,23 @@ select.glass-select option {
 
 @media (max-width: 380px) {
     .floating-tab-bar {
-        transform: translateX(-50%) scale(0.9);
+        transform: translateX(-50%);
         bottom: 10px;
+        padding: 8px 12px;
+    }
+
+    .tabs-container {
+        min-width: 220px;
+    }
+
+    .tab-btn {
+        font-size: 14px;
+        padding: 6px 10px;
+    }
+
+    .tab-btn svg {
+        width: 20px;
+        height: 20px;
     }
 }
 
@@ -1563,17 +1580,17 @@ select.glass-select option {
     background: rgba(30, 30, 30, 0.95);
     border: 1px solid rgba(255, 255, 255, 0.15);
     box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6);
-    animation: modalSlideIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    animation: modalSlideIn 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
 @keyframes modalSlideIn {
     from {
-        transform: scale(0.9) translateY(20px);
+        transform: translateY(20px);
         opacity: 0;
     }
 
     to {
-        transform: scale(1) translateY(0);
+        transform: translateY(0);
         opacity: 1;
     }
 }
@@ -1662,7 +1679,7 @@ select.glass-select option {
 }
 
 .custom-modal-btn:active {
-    transform: scale(0.96);
+    opacity: 0.85;
 }
 
 /* ==========================================
@@ -2146,7 +2163,7 @@ select.glass-select option {
 }
 
 .big-fichaje-btn:active {
-    transform: scale(0.98);
+    opacity: 0.9;
 }
 
 .big-fichaje-btn.salida {
@@ -2495,4 +2512,75 @@ body.menu-open .more-menu-backdrop,
     pointer-events: auto !important;
     outline: 1px dashed rgba(0, 255, 0, 0.3);
     /* DEBUG: Highlight clickable area */
+}
+
+/* ==========================================
+   ACCESSIBILITY - REDUCED MOTION
+   ========================================== */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}
+
+/* ==========================================
+   ADDITIONAL MOBILE BREAKPOINTS
+   ========================================== */
+
+/* iPhone SE / Small phones (320px) */
+@media (max-width: 320px) {
+    .app-title {
+        font-size: 22px;
+    }
+
+    .app-subtitle {
+        font-size: 15px;
+    }
+
+    .glass-card.login-card {
+        padding: 24px 16px;
+    }
+
+    .tabs-container {
+        min-width: 200px;
+    }
+
+    .floating-tab-bar {
+        padding: 6px 10px;
+    }
+
+    .custom-modal-content {
+        padding: 24px 20px;
+    }
+}
+
+/* Standard small phones (375px - iPhone SE 2nd gen, iPhone 12 mini) */
+@media (max-width: 375px) and (min-width: 321px) {
+    .app-title {
+        font-size: 24px;
+    }
+
+    .app-subtitle {
+        font-size: 16px;
+    }
+
+    .glass-card.login-card {
+        padding: 28px 20px;
+    }
+}
+
+/* Standard medium phones (414px - iPhone 11, iPhone XR) */
+@media (max-width: 414px) and (min-width: 376px) {
+    .app-title {
+        font-size: 26px;
+    }
+
+    .custom-modal-content {
+        padding: 28px 24px;
+    }
 }
