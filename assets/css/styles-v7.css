@@ -1777,7 +1777,7 @@ select.glass-select option {
 @keyframes slideInUp {
     from {
         opacity: 0;
-        transform: translateY(20px);
+        transform: translateY(12px);
     }
 
     to {
@@ -1788,7 +1788,7 @@ select.glass-select option {
 
 .admin-table tbody tr,
 .employee-card {
-    animation: slideInUp 0.4s ease backwards;
+    animation: slideInUp 0.3s ease backwards;
 }
 
 /* Stagger delay for rows */
@@ -2378,7 +2378,7 @@ select.glass-select option {
 @keyframes slideUpFade {
     from {
         opacity: 0;
-        transform: translateY(20px);
+        transform: translateY(12px);
     }
 
     to {
@@ -2388,7 +2388,7 @@ select.glass-select option {
 }
 
 .animate-stagger {
-    animation: slideUpFade 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+    animation: slideUpFade 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
     /* opacity: 0; REMOVED to prevent disappearance issues */
 }
 
