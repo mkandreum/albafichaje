@@ -1567,13 +1567,11 @@ class FichajeApp {
         // Handle Company Profile
         let companyProfile = null;
 
-        // Ensure companies are loaded
-        if (this.companies.length === 0) {
-            try {
-                const res = await this.api.getCompanies();
-                if (res.success) this.companies = res.companies;
-            } catch (e) { console.error('Error loading companies for PDF', e); }
-        }
+        // Always reload companies to ensure latest sealImage is available
+        try {
+            const res = await this.api.getCompanies();
+            if (res.success) this.companies = res.companies;
+        } catch (e) { console.error('Error loading companies for PDF', e); }
 
         // Try to find assigned company first
         if (user.companyProfileId) {
@@ -1998,14 +1996,6 @@ class FichajeApp {
                 document.getElementById('compCcc').value = company.ccc || '';
                 if (company.sealImage) {
                     // Check if it's base64 or path
-                    const src = company.sealImage.startsWith('data:') ? company.sealImage : `api/get_signature.php?file=${company.sealImage}`;
-                    // Actually api/upload.php returns relative path in 'path', but view_url is 'api/get_signature.php...'
-                    // Wait, my saveCompany needs to handle this.
-                    // For now, assume sealImage is base64 if small, or we treat it as valid src.
-                    // If it is just a filename, prepend correct path? 
-                    // My previous logic in upload.php returns view_url.
-                    // If I manually impl upload here, I get base64. 
-
                     document.getElementById('compSealPreview').innerHTML = `<img src="${company.sealImage}" style="width:100px; height:auto; border-radius:4px;">`;
                 }
             }
@@ -2064,6 +2054,7 @@ class FichajeApp {
 
         const res = await this.api.saveCompany(data);
         if (res.success) {
+            if (res.companies) this.companies = res.companies; // Update immediately from response
             this.showToast('Empresa guardada', 'success');
             this.closeCompanyModal();
             this.loadAdminSettings();
