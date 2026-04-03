@@ -2,19 +2,25 @@
 // api/companies.php
 require_once 'config.php';
 
-// Check if user is admin
-if (!isset($_SESSION['user']) || $_SESSION['user']['role'] !== 'admin') {
+// Check if user is authenticated
+if (!isset($_SESSION['user'])) {
     response(['success' => false, 'message' => 'Acceso denegado'], 403);
 }
 
+$isAdmin = (($_SESSION['user']['role'] ?? '') === 'admin');
 $method = $_SERVER['REQUEST_METHOD'];
 $action = $_GET['action'] ?? '';
 
 switch ($method) {
     case 'GET':
+        // Any authenticated user can read company data (needed for PDF generation)
         handleGet();
         break;
     case 'POST':
+        // Only admins can create, update, or delete companies
+        if (!$isAdmin) {
+            response(['success' => false, 'message' => 'Acceso denegado'], 403);
+        }
         if ($action === 'delete') {
             handleDelete();
         } else {
