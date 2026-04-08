@@ -449,6 +449,16 @@ function handleLogout()
 function handleCheckSession()
 {
     if (isset($_SESSION['user'])) {
+        // Refresh session data from file to pick up admin-side changes (e.g. companyProfileId)
+        $users = readJson(USERS_FILE);
+        $userId = $_SESSION['user']['id'];
+        foreach ($users as $u) {
+            if ($u['id'] === $userId) {
+                unset($u['password']);
+                $_SESSION['user'] = $u;
+                break;
+            }
+        }
         response(['success' => true, 'user' => $_SESSION['user']]);
     } else {
         response(['success' => false, 'message' => 'No hay sesión activa'], 401);

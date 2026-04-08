@@ -117,6 +117,9 @@ class FichajeApp {
         safeAdd('prevMonthBtn', 'click', () => this.changeMonth(-1));
         safeAdd('nextMonthBtn', 'click', () => this.changeMonth(1));
 
+        safeAdd('firmaPrevMonthBtn', 'click', () => this.changeMonth(-1));
+        safeAdd('firmaNextMonthBtn', 'click', () => this.changeMonth(1));
+
         safeAdd('clearSignatureBtn', 'click', () => this.clearMainSignature());
         safeAdd('generatePdfBtn', 'click', () => this.generatePDF());
         safeAdd('sharePdfBtn', 'click', () => this.sharePDF());
@@ -371,6 +374,7 @@ class FichajeApp {
         this.updateTabIndicator();
         if (tabName === 'fichaje') this.loadTodayFichajes();
         else if (tabName === 'historico') this.renderCalendar();
+        else if (tabName === 'firma') this.updateFirmaMonthDisplay();
         else if (tabName === 'admin') this.loadAdminData();
         else if (tabName === 'dashboard') this.loadDashboardData();
         else if (tabName === 'settings') this.loadSettingsForm();
@@ -544,6 +548,34 @@ class FichajeApp {
     changeMonth(direction) {
         this.currentMonth = new Date(this.currentMonth.getFullYear(), this.currentMonth.getMonth() + direction, 1);
         this.renderCalendar();
+        this.updateFirmaMonthDisplay();
+    }
+
+    updateFirmaMonthDisplay() {
+        const monthNames = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+        const year = this.currentMonth.getFullYear();
+        const month = this.currentMonth.getMonth();
+        const firmaMonthEl = document.getElementById('firmaMonth');
+        if (firmaMonthEl) {
+            firmaMonthEl.textContent = `${monthNames[month]} ${year}`;
+        }
+        const countEl = document.getElementById('firmaFichajeCount');
+        if (countEl) {
+            const userId = this.currentUser ? (this.currentUser.id || this.currentUser.email) : null;
+            if (userId) {
+                const monthFichajes = this.fichajes.filter(f => {
+                    const d = new Date(f.date);
+                    return f.userId === userId && d.getMonth() === month && d.getFullYear() === year;
+                });
+                if (monthFichajes.length > 0) {
+                    countEl.textContent = `${monthFichajes.length} fichaje(s) registrado(s) este mes`;
+                    countEl.style.color = 'rgba(52,199,89,0.8)';
+                } else {
+                    countEl.textContent = '⚠️ No hay fichajes para este mes';
+                    countEl.style.color = 'rgba(255,149,0,0.8)';
+                }
+            }
+        }
     }
 
     renderCalendar() {
@@ -797,9 +829,28 @@ class FichajeApp {
 
         const userFichajes = this.fichajes.filter(f => f.userId === userId);
 
-        // Use the shared preloader, but we need to handle mainSignature locally first
-        // actually _prepareAndDownloadPdf handles the heavy lifting of images.
-        // We just need to pass the user with the mainSignature attached.
+        // Check if there are fichajes for the currently selected month
+        const currentMonth = this.currentMonth.getMonth();
+        const currentYear = this.currentMonth.getFullYear();
+        const monthFichajes = userFichajes.filter(f => {
+            const d = new Date(f.date);
+            return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
+        });
+
+        if (monthFichajes.length === 0 && userFichajes.length > 0) {
+            // Auto-navigate to the most recent month with data
+            const sorted = [...userFichajes].sort((a, b) => new Date(b.date) - new Date(a.date));
+            const mostRecentDate = new Date(sorted[0].date);
+            this.currentMonth = new Date(mostRecentDate.getFullYear(), mostRecentDate.getMonth(), 1);
+            this.updateFirmaMonthDisplay();
+            this.renderCalendar();
+
+            const monthNames = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+            this.showToast(`📅 Generando PDF de ${monthNames[this.currentMonth.getMonth()]} ${this.currentMonth.getFullYear()}`, 'info');
+        } else if (userFichajes.length === 0) {
+            this.showToast('❌ No hay fichajes registrados', 'error');
+            return;
+        }
 
         this._prepareAndDownloadPdf(this.currentUser, userFichajes);
     }
