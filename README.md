@@ -1,46 +1,58 @@
-# AlbaFichaje - Sistema de Gestión de Fichajes
+<div align="center">
 
-Sistema web moderno para el control de horarios y fichajes, diseñado con una estética "Liquid Glass" y optimizado para dispositivos móviles y pantallas táctiles.
+# ⏱️ AlbaFichaje
 
-## 📱 Características Principales
+**Sistema de control de presencia y fichaje para empresas**
 
-- **Diseño Mobile-First**: Interfaz responsive adaptada a móviles con soporte táctil completo.
-- **Firma Digital**: Captura de firmas de entrada y salida mediante panel táctil.
-- **Gestión de Fichajes**: Registro de hora de entrada y salida con validación.
-- **Generación de PDF**: Informes mensuales completos en PDF con firmas incrustadas.
-- **Panel de Administración**: Vista para administradores para revisar fichajes de todos los empleados.
-- **Estética Premium**: Diseño estilo iOS "Liquid Glass" con efectos de transparencia y desenfoque.
+*Un producto de [Xyon Platforms](https://github.com/mkandreum)*
 
-## 🚀 Instalación y Despliegue
+![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=flat&logo=javascript&logoColor=black)
+![Node.js](https://img.shields.io/badge/Node.js-339933?style=flat&logo=nodedotjs&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-2496ED?style=flat&logo=docker&logoColor=white)
 
-Este proyecto utiliza **PHP** como backend simple (basado en archivos JSON, sin base de datos SQL) y **Vanilla JS/CSS** para el frontend.
-
-### Requisitos
-- Servidor Web (Apache/Nginx) con soporte PHP 7.4+.
-- Permisos de escritura en la carpeta `data/` y `assets/uploads/`.
-
-### Pasos
-1. **Clonar/Copiar** los archivos al servidor web.
-2. **Permisos**: Asegúrate de que las carpetas de datos sean escribibles:
-   ```bash
-   chmod -R 777 data
-   chmod -R 777 assets/uploads
-   ```
-3. **Usuarios por Defecto**:
-   El sistema se inicializa con un archivo `users.json` si no existe. El primer registro puede hacerse desde la interfaz de "Registrarse".
-
-To reset admins manually, edit `data/users.json`.
-
-## 🛠️ Tecnologías
-
-- **Frontend**: HTML5, CSS3 (Variables, Flexbox/Grid), JavaScript (ES6+).
-- **Backend**: PHP (API REST sencilla).
-- **Almacenamiento**: Archivos JSON (en carpeta `/data`).
-- **PDF**: `pdfmake` (lado del cliente).
-
-## 📱 Uso en Móvil
-
-La aplicación está diseñada para funcionar como una Web App. Puede añadirse a la pantalla de inicio (Add to Home Screen) en iOS/Android para una experiencia de pantalla completa.
+</div>
 
 ---
-Desarrollado para Alba Luz Desarrollos Urbanos.
+
+## ¿Qué es AlbaFichaje?
+
+AlbaFichaje es un sistema de control de presencia y fichaje digital desarrollado por Xyon Platforms para empresas y pymes. Permite a los empleados fichar entrada y salida desde cualquier dispositivo, y a los administradores consultar registros, gestionar empleados y exportar informes.
+
+## ✨ Funcionalidades
+
+- **Fichaje digital** de entrada y salida con marca de tiempo
+- **Panel de administración** con listado de registros por empleado
+- **Gestión de empleados** y asignación de turnos
+- **Exportación de datos** para nóminas o control interno
+- **Acceso desde cualquier dispositivo** con navegador web
+- **Despliegue self-hosted** compatible con Docker y Coolify
+
+## 🛠️ Stack técnico
+
+| Capa | Tecnología |
+|------|----------|
+| Frontend | HTML + CSS + JavaScript |
+| Backend | Node.js + Express |
+| Despliegue | Docker + Coolify |
+
+## 🚀 Instalación
+
+```bash
+git clone https://github.com/mkandreum/albafichaje.git
+cd albafichaje
+cp .env.example .env
+docker-compose up -d
+```
+
+### Desarrollo local
+
+```bash
+npm install
+npm start
+```
+
+## 🏢 Xyon Platforms
+
+AlbaFichaje es un producto desarrollado y mantenido por **Xyon Platforms**, empresa especializada en soluciones digitales para negocios locales y pymes.
+
+> © Xyon Platforms — Todos los derechos reservados
